@@ -53,7 +53,10 @@ class SailingGame {
             this.coastPoints.push({
                 x: rightX + variance,
                 y: y,
-                type: 'right'
+                type: 'right',
+                hasVegetation: Math.random() > 0.7,
+                hasRock: y % 100 === 0,
+                rockRotation: Math.random() * Math.PI
             });
         }
         
@@ -64,7 +67,10 @@ class SailingGame {
             this.coastPoints.push({
                 x: x,
                 y: bottomY + variance,
-                type: 'bottom'
+                type: 'bottom',
+                hasVegetation: Math.random() > 0.7,
+                hasRock: x % 100 === 0,
+                rockRotation: Math.random() * Math.PI
             });
         }
     }
@@ -255,7 +261,7 @@ class SailingGame {
         // Add vegetation details
         ctx.fillStyle = '#4a7c59';
         this.coastPoints.forEach((point) => {
-            if (Math.random() > 0.7) {
+            if (point.hasVegetation) {
                 // Small bushes/vegetation
                 const bushX = point.x + (point.type === 'right' ? 20 : 0);
                 const bushY = point.y + (point.type === 'bottom' ? 20 : 0);
@@ -267,12 +273,12 @@ class SailingGame {
         
         // Draw some rocks
         ctx.fillStyle = '#5a5a5a';
-        this.coastPoints.forEach((point, i) => {
-            if (i % 5 === 0) {
+        this.coastPoints.forEach((point) => {
+            if (point.hasRock) {
                 const rockX = point.x - (point.type === 'right' ? 10 : 0);
                 const rockY = point.y - (point.type === 'bottom' ? 10 : 0);
                 ctx.beginPath();
-                ctx.ellipse(rockX, rockY, 8, 6, Math.random() * Math.PI, 0, Math.PI * 2);
+                ctx.ellipse(rockX, rockY, 8, 6, point.rockRotation, 0, Math.PI * 2);
                 ctx.fill();
             }
         });
@@ -458,7 +464,10 @@ class SailingGame {
         this.updateControls();
         this.updatePhysics();
         
-        // Clear and draw
+        // Clear canvas
+        this.ctx.clearRect(0, 0, this.width, this.height);
+        
+        // Draw
         this.drawOcean();
         this.drawCoastline();
         this.drawWind();
