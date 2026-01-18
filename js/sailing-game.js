@@ -321,12 +321,12 @@ class SailingGame {
         // Rudder indicator (small line at stern)
         ctx.save();
         ctx.translate(-boat.length / 2, 0);
-        ctx.rotate((boat.rudderAngle * Math.PI) / 180);
+        ctx.rotate(-(boat.rudderAngle * Math.PI) / 180);
         ctx.strokeStyle = '#333';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.lineTo(8, 0);
+        ctx.lineTo(-8, 0);
         ctx.stroke();
         ctx.restore();
         
