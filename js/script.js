@@ -29,12 +29,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const navLinks = document.querySelectorAll('.nav-links a');
     navLinks.forEach(link => {
         const linkHref = link.getAttribute('href');
-        // Handle various path scenarios including root, subdirectories, and trailing slashes
-        const isActive = linkHref === currentPage || 
-                        currentPath.endsWith('/' + linkHref) ||
-                        (currentPath.endsWith('/') && linkHref === 'index.html') ||
-                        (currentPath === '/' && linkHref === 'index.html');
-        if (isActive) {
+        // Match filename or handle root/trailing slash scenarios for index.html
+        if (linkHref === currentPage || 
+            currentPath.endsWith('/' + linkHref) ||
+            ((currentPath === '/' || currentPath.endsWith('/')) && linkHref === 'index.html')) {
             link.classList.add('active');
         }
     });
