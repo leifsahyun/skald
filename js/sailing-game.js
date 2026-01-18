@@ -202,11 +202,11 @@ class SailingGame {
         }
         ctx.restore();
         
-        // Draw foam/sparkles on waves
+        // Draw wind sparkles on waves
         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         for (let i = 0; i < 100; i++) {
-            const x = (this.waveOffset * 50 + i * 123) % this.width;
-            const y = (this.waveOffset * 30 + i * 87) % this.height;
+            const x = (this.waveOffset * 50 + i * 100 * Math.cos(this.wind.angle)) % this.width;
+            const y = (this.waveOffset * 30 + i * 100 * Math.sin(this.wind.angle)) % this.height;
             const size = Math.sin(this.time * 0.1 + i) * 1.5 + 2;
             ctx.beginPath();
             ctx.arc(x, y, size, 0, Math.PI * 2);
