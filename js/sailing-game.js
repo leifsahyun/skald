@@ -124,9 +124,9 @@ class SailingGame {
         const boatAngle = this.boat.angle;
         const windAngle = this.wind.angle;
         const sailAngleRad = (this.boat.sailAngle * Math.PI) / 180;
-        const waveMultiplier = 1;
+        const waveMultiplier = 0.2;
         const tidalMultiplier = 1;
-        const pullOffset = 0.6;
+        const pullOffset = 0.7;
         
         // Relative wind angle to boat
         let relativeWindAngle = windAngle - boatAngle;
