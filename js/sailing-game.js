@@ -106,7 +106,6 @@ class SailingGame {
         
         // Normalize angle difference to -PI to PI (shortest path)
         angleDiff = ((angleDiff + Math.PI) % (2 * Math.PI)) - Math.PI;
-        if (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
         
         // Move wind angle towards target
         if (Math.abs(angleDiff) > this.wind.targetThreshold) {
