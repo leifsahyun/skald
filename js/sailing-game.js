@@ -284,7 +284,7 @@ class SailingGame {
         // Sail (triangle)
         if (this.boat.sailHeight > 0.1) {
             ctx.save();
-            ctx.rotate((boat.sailAngle * Math.PI) / 180 + Math.PI/2);
+            ctx.rotate((boat.sailAngle * Math.PI) / 180);
             
             // Sail shadow/depth
             ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
@@ -321,7 +321,7 @@ class SailingGame {
         // Rudder indicator (small line at stern)
         ctx.save();
         ctx.translate(-boat.length / 2, 0);
-        ctx.rotate(-(boat.rudderAngle * Math.PI) / 180);
+        ctx.rotate((boat.rudderAngle * Math.PI) / 180);
         ctx.strokeStyle = '#333';
         ctx.lineWidth = 2;
         ctx.beginPath();
