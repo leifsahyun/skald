@@ -124,6 +124,9 @@ class SailingGame {
         const boatAngle = this.boat.angle;
         const windAngle = this.wind.angle;
         const sailAngleRad = (this.boat.sailAngle * Math.PI) / 180;
+        const waveMultiplier = 0.05;
+        const tidalMultiplier = 1;
+        const pullOffset = 0.6;
         
         // Relative wind angle to boat
         let relativeWindAngle = windAngle - boatAngle;
@@ -149,13 +152,17 @@ class SailingGame {
             this.boat.angle += turnRate;
         }
         
+        // Apply speed from waves
+        let waveSpeed = Math.max(0, Math.sin(2 * this.time) + 2 * Math.sin(this.time)) - pullOffset;
+        waveSpeed = waveMultiplier * (waveSpeed > 0 ? waveSpeed * tidalMultiplier : waveSpeed / tidalMultiplier);
+        
         // Move boat
-        this.boat.x += Math.cos(this.boat.angle) * this.boat.speed;
+        this.boat.x += Math.cos(this.boat.angle) * this.boat.speed + waveSpeed;
         this.boat.y += Math.sin(this.boat.angle) * this.boat.speed;
         
         // Keep boat in bounds
-        this.boat.x = Math.max(50, Math.min(this.width - 200, this.boat.x));
-        this.boat.y = Math.max(50, Math.min(this.height - 150, this.boat.y));
+        this.boat.x = Math.max(50, Math.min(this.width-50, this.boat.x));
+        this.boat.y = Math.max(50, Math.min(this.height-50, this.boat.y));
     }
     
     drawOcean() {
