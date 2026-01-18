@@ -331,7 +331,7 @@ class SailingGame {
             const moveX = Math.cos(this.wind.angle) * windMovement;
             const moveY = Math.sin(this.wind.angle) * windMovement;
             
-            // Final position (wrap around canvas)
+            // Final position (wrap around canvas, add offset to ensure positive values before modulo)
             const x = (baseX + moveX + this.width * 2) % this.width;
             const y = (baseY + moveY + this.height * 2) % this.height;
             
