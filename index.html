@@ -19,11 +19,19 @@
     <main>
         <section class="hero">
             <div class="container">
-                <h2>Welcome to Skald</h2>
+                <h2>Sailing Game</h2>
+                <p>Use A/D for rudder | W/S to raise/lower sail | Left/Right mouse for sail angle</p>
             </div>
         </section>
 
-        <!-- TODO: add game here -->
+        <section class="game-container">
+            <canvas id="gameCanvas" width="1200" height="800"></canvas>
+            <div class="game-info">
+                <p id="speed">Speed: 0.0</p>
+                <p id="heading">Heading: 0°</p>
+                <p id="sailPos">Sail Height: 100%</p>
+            </div>
+        </section>
         
     </main>
 
@@ -34,5 +42,6 @@
     </footer>
 
     <script src="js/script.js"></script>
+    <script src="js/sailing-game.js"></script>
 </body>
 </html>
