@@ -136,7 +136,7 @@ class SailingGame {
         while (relativeWindAngle < -Math.PI) relativeWindAngle += 2 * Math.PI;
         
         // Calculate how aligned the sail is with the wind
-        const sailEfficiency = Math.max(Math.cos(relativeWindAngle - sailAngleRad), 0);
+        const sailEfficiency = Math.abs(Math.cos(relativeWindAngle - sailAngleRad));
         
         // Apply force based on sail height and efficiency
         const force = this.wind.speed * sailEfficiency * this.boat.sailHeight * 0.3;
@@ -205,7 +205,7 @@ class SailingGame {
         // Draw wind sparkles on waves
         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         for (let i = 0; i < 100; i++) {
-            const x = (this.waveOffset * 50 * Math.sin(this.wind.angle) + i * 123) % this.width;
+            const x = (-this.waveOffset * 50 * Math.sin(this.wind.angle) + i * 123) % this.width;
             const y = (this.waveOffset * 50 * Math.cos(this.wind.angle) + i * 87) % this.height;
             const size = Math.sin(this.time * 0.1 + i) * 1.5 + 2;
             ctx.beginPath();
