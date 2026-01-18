@@ -98,7 +98,7 @@ class SailingGame {
         // Calculate wind effectiveness based on sail angle and position
         const boatAngle = this.boat.angle;
         const windAngle = this.wind.angle;
-        const sailAngleRad = ((this.boat.sailAngle + 30) * Math.PI) / 180;
+        const sailAngleRad = ((this.boat.sailAngle - 30) * Math.PI) / 180;
         
         // Relative wind angle to boat
         let relativeWindAngle = windAngle - boatAngle;
