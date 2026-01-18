@@ -109,6 +109,7 @@ class SailingGame {
             
             button.addEventListener('touchstart', startAction);
             button.addEventListener('touchend', stopAction);
+            button.addEventListener('touchcancel', stopAction);
             button.addEventListener('mousedown', startAction);
             button.addEventListener('mouseup', stopAction);
             button.addEventListener('mouseleave', leaveAction);
