@@ -23,9 +23,15 @@ class SailingGame {
         
         // Wind
         this.wind = {
-            angle: Math.PI / 4,  // Wind direction (radians)
-            speed: 3.0
+            angle: Math.random() * Math.PI * 2,  // Wind direction (radians) - starts at random angle
+            speed: 3.0,
+            changeRate: 0.0005,  // How fast the wind angle changes (radians per frame)
+            targetAngle: null,   // Target angle for wind to shift towards
+            targetThreshold: 0.01  // How close to target before picking new target (radians)
         };
+        
+        // Initialize first target wind angle
+        this.wind.targetAngle = Math.random() * Math.PI * 2;
         
         // Ocean animation
         this.waveOffset = 0;
@@ -92,6 +98,25 @@ class SailingGame {
         if (this.mouseDown.right) {
             this.boat.sailAngle = Math.min(0, this.boat.sailAngle + 2);
         }
+    }
+    
+    updateWind() {
+        // Gradually shift wind angle towards target angle
+        let angleDiff = this.wind.targetAngle - this.wind.angle;
+        
+        // Normalize angle difference to -PI to PI (shortest path)
+        angleDiff = ((angleDiff + Math.PI) % (2 * Math.PI)) - Math.PI;
+        
+        // Move wind angle towards target
+        if (Math.abs(angleDiff) > this.wind.targetThreshold) {
+            this.wind.angle += Math.sign(angleDiff) * this.wind.changeRate;
+        } else {
+            // Close enough to target, pick a new target angle
+            this.wind.targetAngle = Math.random() * Math.PI * 2;
+        }
+        
+        // Normalize wind angle to 0 to 2PI
+        this.wind.angle = ((this.wind.angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
     }
     
     updatePhysics() {
@@ -367,6 +392,7 @@ class SailingGame {
     
     gameLoop() {
         this.updateControls();
+        this.updateWind();
         this.updatePhysics();
         
         // Clear canvas
