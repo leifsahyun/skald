@@ -1,4 +1,4 @@
-// Mobile menu toggle (for future enhancement)
+// Main JavaScript functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Form submission handler
     const contactForm = document.getElementById('contact-form');
@@ -24,10 +24,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Add active class to current page in navigation
-    const currentLocation = location.pathname.split('/').pop() || 'index.html';
+    const currentPath = location.pathname;
+    const currentPage = currentPath.split('/').pop() || 'index.html';
     const navLinks = document.querySelectorAll('.nav-links a');
     navLinks.forEach(link => {
-        if (link.getAttribute('href') === currentLocation) {
+        const linkHref = link.getAttribute('href');
+        // Match both exact filename and full path to handle subdirectories
+        if (linkHref === currentPage || currentPath.endsWith('/' + linkHref)) {
             link.classList.add('active');
         }
     });
