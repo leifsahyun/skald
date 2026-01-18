@@ -318,8 +318,23 @@ class SailingGame {
         // Draw wind sparkles on waves
         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         for (let i = 0; i < 100; i++) {
-            const x = (this.time * 10 * Math.cos(this.wind.angle) + i * 123) % this.width;
-            const y = (this.time * 10 * Math.sin(this.wind.angle) + i * 87) % this.height;
+            // Calculate perpendicular angle to wind for distributing sparkles
+            const perpAngle = this.wind.angle + Math.PI / 2;
+            
+            // Base position along perpendicular line (distributes sparkles)
+            const perpOffset = (i * 30) % (this.width + this.height);
+            const baseX = Math.cos(perpAngle) * perpOffset;
+            const baseY = Math.sin(perpAngle) * perpOffset;
+            
+            // Movement along wind direction
+            const windMovement = (this.time * 10) % (this.width + this.height);
+            const moveX = Math.cos(this.wind.angle) * windMovement;
+            const moveY = Math.sin(this.wind.angle) * windMovement;
+            
+            // Final position (wrap around canvas)
+            const x = (baseX + moveX + this.width * 2) % this.width;
+            const y = (baseY + moveY + this.height * 2) % this.height;
+            
             const size = Math.sin(this.time * 0.1 + i) * 1.5 + 2;
             ctx.beginPath();
             ctx.arc(x, y, size, 0, Math.PI * 2);
