@@ -29,8 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const navLinks = document.querySelectorAll('.nav-links a');
     navLinks.forEach(link => {
         const linkHref = link.getAttribute('href');
-        // Match both exact filename and full path to handle subdirectories
-        if (linkHref === currentPage || currentPath.endsWith('/' + linkHref)) {
+        // Handle various path scenarios including root, subdirectories, and trailing slashes
+        const isActive = linkHref === currentPage || 
+                        currentPath.endsWith('/' + linkHref) ||
+                        (currentPath.endsWith('/') && linkHref === 'index.html') ||
+                        (currentPath === '/' && linkHref === 'index.html');
+        if (isActive) {
             link.classList.add('active');
         }
     });
