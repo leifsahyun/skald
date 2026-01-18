@@ -35,44 +35,8 @@ class SailingGame {
         this.keys = {};
         this.mouseDown = { left: false, right: false };
         
-        // Coastline - generate random coastal points
-        this.generateCoastline();
-        
         this.setupControls();
         this.gameLoop();
-    }
-    
-    generateCoastline() {
-        // Create a coastline on the right side and bottom
-        this.coastPoints = [];
-        
-        // Right coast (vertical)
-        const rightX = this.width - 150;
-        for (let y = 0; y < this.height; y += 20) {
-            const variance = Math.random() * 40 - 20;
-            this.coastPoints.push({
-                x: rightX + variance,
-                y: y,
-                type: 'right',
-                hasVegetation: Math.random() > 0.7,
-                hasRock: y % 100 === 0,
-                rockRotation: Math.random() * Math.PI
-            });
-        }
-        
-        // Bottom coast (horizontal)
-        const bottomY = this.height - 100;
-        for (let x = 0; x < this.width - 150; x += 20) {
-            const variance = Math.random() * 30 - 15;
-            this.coastPoints.push({
-                x: x,
-                y: bottomY + variance,
-                type: 'bottom',
-                hasVegetation: Math.random() > 0.7,
-                hasRock: x % 100 === 0,
-                rockRotation: Math.random() * Math.PI
-            });
-        }
     }
     
     setupControls() {
@@ -218,72 +182,6 @@ class SailingGame {
         }
     }
     
-    drawCoastline() {
-        const ctx = this.ctx;
-        
-        // Draw sandy beach/coast
-        ctx.fillStyle = '#d4a574';
-        ctx.strokeStyle = '#b8935f';
-        ctx.lineWidth = 3;
-        
-        // Right coast
-        ctx.beginPath();
-        const rightCoastPoints = this.coastPoints.filter(p => p.type === 'right');
-        rightCoastPoints.forEach((point, i) => {
-            if (i === 0) {
-                ctx.moveTo(point.x, point.y);
-            } else {
-                ctx.lineTo(point.x, point.y);
-            }
-        });
-        ctx.lineTo(this.width, this.height);
-        ctx.lineTo(this.width, 0);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        
-        // Bottom coast
-        ctx.beginPath();
-        const bottomCoastPoints = this.coastPoints.filter(p => p.type === 'bottom');
-        bottomCoastPoints.forEach((point, i) => {
-            if (i === 0) {
-                ctx.moveTo(point.x, point.y);
-            } else {
-                ctx.lineTo(point.x, point.y);
-            }
-        });
-        ctx.lineTo(this.width - 150, this.height);
-        ctx.lineTo(0, this.height);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        
-        // Add vegetation details
-        ctx.fillStyle = '#4a7c59';
-        this.coastPoints.forEach((point) => {
-            if (point.hasVegetation) {
-                // Small bushes/vegetation
-                const bushX = point.x + (point.type === 'right' ? 20 : 0);
-                const bushY = point.y + (point.type === 'bottom' ? 20 : 0);
-                ctx.beginPath();
-                ctx.arc(bushX, bushY, 5, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        });
-        
-        // Draw some rocks
-        ctx.fillStyle = '#5a5a5a';
-        this.coastPoints.forEach((point) => {
-            if (point.hasRock) {
-                const rockX = point.x - (point.type === 'right' ? 10 : 0);
-                const rockY = point.y - (point.type === 'bottom' ? 10 : 0);
-                ctx.beginPath();
-                ctx.ellipse(rockX, rockY, 8, 6, point.rockRotation, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        });
-    }
-    
     drawWind() {
         const ctx = this.ctx;
         const centerX = 100;
@@ -386,7 +284,7 @@ class SailingGame {
         // Sail (triangle)
         if (this.boat.sailHeight > 0.1) {
             ctx.save();
-            ctx.rotate((boat.sailAngle * Math.PI) / 180);
+            ctx.rotate((boat.sailAngle * Math.PI) / 180 + Math.PI/2);
             
             // Sail shadow/depth
             ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
@@ -423,12 +321,12 @@ class SailingGame {
         // Rudder indicator (small line at stern)
         ctx.save();
         ctx.translate(-boat.length / 2, 0);
-        ctx.rotate((boat.rudderAngle * Math.PI) / 180);
+        ctx.rotate(-(boat.rudderAngle * Math.PI) / 180);
         ctx.strokeStyle = '#333';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.lineTo(-8, 0);
+        ctx.lineTo(8, 0);
         ctx.stroke();
         ctx.restore();
         
@@ -476,7 +374,6 @@ class SailingGame {
         
         // Draw
         this.drawOcean();
-        this.drawCoastline();
         this.drawWind();
         this.drawBoat();
         
