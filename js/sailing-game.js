@@ -70,6 +70,58 @@ class SailingGame {
         this.canvas.addEventListener('contextmenu', (e) => {
             e.preventDefault();
         });
+        
+        // Mobile control buttons
+        this.setupMobileControls();
+    }
+    
+    setupMobileControls() {
+        // Helper function to add button event listeners
+        const addButtonListeners = (buttonId, actionType, actionKey) => {
+            const button = document.getElementById(buttonId);
+            if (!button) return;
+            
+            const startAction = (e) => {
+                e.preventDefault();
+                if (actionType === 'key') {
+                    this.keys[actionKey] = true;
+                } else if (actionType === 'mouse') {
+                    this.mouseDown[actionKey] = true;
+                }
+            };
+            
+            const stopAction = (e) => {
+                e.preventDefault();
+                if (actionType === 'key') {
+                    this.keys[actionKey] = false;
+                } else if (actionType === 'mouse') {
+                    this.mouseDown[actionKey] = false;
+                }
+            };
+            
+            const leaveAction = () => {
+                if (actionType === 'key') {
+                    this.keys[actionKey] = false;
+                } else if (actionType === 'mouse') {
+                    this.mouseDown[actionKey] = false;
+                }
+            };
+            
+            button.addEventListener('touchstart', startAction);
+            button.addEventListener('touchend', stopAction);
+            button.addEventListener('touchcancel', stopAction);
+            button.addEventListener('mousedown', startAction);
+            button.addEventListener('mouseup', stopAction);
+            button.addEventListener('mouseleave', leaveAction);
+        };
+        
+        // Rudder controls (equivalent to A/D keys)
+        addButtonListeners('rudderLeftBtn', 'key', 'a');
+        addButtonListeners('rudderRightBtn', 'key', 'd');
+        
+        // Sail angle controls (equivalent to left/right mouse buttons)
+        addButtonListeners('sailInBtn', 'mouse', 'left');
+        addButtonListeners('sailOutBtn', 'mouse', 'right');
     }
     
     updateControls() {
