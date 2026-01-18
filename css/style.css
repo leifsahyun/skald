@@ -211,12 +211,69 @@ footer {
     background-color: #f8f9fa;
 }
 
+.canvas-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
 #gameCanvas {
     border: 3px solid #2c3e50;
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     cursor: crosshair;
     background-color: #1a5f7a;
+}
+
+/* Mobile control buttons */
+.mobile-controls {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.control-group {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: all;
+}
+
+.rudder-controls {
+    bottom: 20px;
+    right: 20px;
+}
+
+.sail-controls {
+    bottom: 20px;
+    left: 20px;
+}
+
+.control-btn {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(44, 62, 80, 0.6);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    font-size: 24px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.control-btn:hover {
+    background-color: rgba(44, 62, 80, 0.8);
+}
+
+.control-btn:active {
+    background-color: rgba(52, 152, 219, 0.8);
+    transform: scale(0.95);
 }
 
 .game-info {

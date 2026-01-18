@@ -25,7 +25,24 @@
         </section>
 
         <section class="game-container">
-            <canvas id="gameCanvas" width="1200" height="800"></canvas>
+            <div class="canvas-wrapper">
+                <canvas id="gameCanvas" width="1200" height="800"></canvas>
+                
+                <!-- Mobile control buttons -->
+                <div class="mobile-controls">
+                    <!-- Rudder controls (bottom-right) -->
+                    <div class="control-group rudder-controls">
+                        <button id="rudderLeftBtn" class="control-btn" aria-label="Turn rudder left">◄</button>
+                        <button id="rudderRightBtn" class="control-btn" aria-label="Turn rudder right">►</button>
+                    </div>
+                    
+                    <!-- Sail angle controls (bottom-left) -->
+                    <div class="control-group sail-controls">
+                        <button id="sailInBtn" class="control-btn" aria-label="Sail angle in">◄</button>
+                        <button id="sailOutBtn" class="control-btn" aria-label="Sail angle out">►</button>
+                    </div>
+                </div>
+            </div>
             <div class="game-info">
                 <p id="speed">Speed: 0.0</p>
                 <p id="heading">Heading: 0°</p>

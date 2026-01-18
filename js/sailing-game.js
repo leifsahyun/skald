@@ -70,6 +70,105 @@ class SailingGame {
         this.canvas.addEventListener('contextmenu', (e) => {
             e.preventDefault();
         });
+        
+        // Mobile control buttons
+        this.setupMobileControls();
+    }
+    
+    setupMobileControls() {
+        // Rudder controls
+        const rudderLeftBtn = document.getElementById('rudderLeftBtn');
+        const rudderRightBtn = document.getElementById('rudderRightBtn');
+        
+        // Sail angle controls
+        const sailInBtn = document.getElementById('sailInBtn');
+        const sailOutBtn = document.getElementById('sailOutBtn');
+        
+        if (rudderLeftBtn && rudderRightBtn && sailInBtn && sailOutBtn) {
+            // Rudder left button (equivalent to 'A' key)
+            rudderLeftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.keys['a'] = true;
+            });
+            rudderLeftBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.keys['a'] = false;
+            });
+            rudderLeftBtn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                this.keys['a'] = true;
+            });
+            rudderLeftBtn.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                this.keys['a'] = false;
+            });
+            rudderLeftBtn.addEventListener('mouseleave', (e) => {
+                this.keys['a'] = false;
+            });
+            
+            // Rudder right button (equivalent to 'D' key)
+            rudderRightBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.keys['d'] = true;
+            });
+            rudderRightBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.keys['d'] = false;
+            });
+            rudderRightBtn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                this.keys['d'] = true;
+            });
+            rudderRightBtn.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                this.keys['d'] = false;
+            });
+            rudderRightBtn.addEventListener('mouseleave', (e) => {
+                this.keys['d'] = false;
+            });
+            
+            // Sail in button (equivalent to left mouse button)
+            sailInBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.mouseDown.left = true;
+            });
+            sailInBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.mouseDown.left = false;
+            });
+            sailInBtn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                this.mouseDown.left = true;
+            });
+            sailInBtn.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                this.mouseDown.left = false;
+            });
+            sailInBtn.addEventListener('mouseleave', (e) => {
+                this.mouseDown.left = false;
+            });
+            
+            // Sail out button (equivalent to right mouse button)
+            sailOutBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.mouseDown.right = true;
+            });
+            sailOutBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.mouseDown.right = false;
+            });
+            sailOutBtn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                this.mouseDown.right = true;
+            });
+            sailOutBtn.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                this.mouseDown.right = false;
+            });
+            sailOutBtn.addEventListener('mouseleave', (e) => {
+                this.mouseDown.right = false;
+            });
+        }
     }
     
     updateControls() {
