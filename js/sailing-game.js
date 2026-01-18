@@ -87,10 +87,10 @@ class SailingGame {
         
         // Sail angle (Mouse buttons)
         if (this.mouseDown.left) {
-            this.boat.sailAngle = Math.max(-90, this.boat.sailAngle - 2);
+            this.boat.sailAngle = Math.max(-180, this.boat.sailAngle - 2);
         }
         if (this.mouseDown.right) {
-            this.boat.sailAngle = Math.min(90, this.boat.sailAngle + 2);
+            this.boat.sailAngle = Math.min(0, this.boat.sailAngle + 2);
         }
     }
     
@@ -98,7 +98,7 @@ class SailingGame {
         // Calculate wind effectiveness based on sail angle and position
         const boatAngle = this.boat.angle;
         const windAngle = this.wind.angle;
-        const sailAngleRad = ((this.boat.sailAngle - 30) * Math.PI) / 180;
+        const sailAngleRad = (this.boat.sailAngle * Math.PI) / 180;
         
         // Relative wind angle to boat
         let relativeWindAngle = windAngle - boatAngle;
