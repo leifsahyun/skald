@@ -76,99 +76,51 @@ class SailingGame {
     }
     
     setupMobileControls() {
-        // Rudder controls
-        const rudderLeftBtn = document.getElementById('rudderLeftBtn');
-        const rudderRightBtn = document.getElementById('rudderRightBtn');
+        // Helper function to add button event listeners
+        const addButtonListeners = (buttonId, actionType, actionKey) => {
+            const button = document.getElementById(buttonId);
+            if (!button) return;
+            
+            const startAction = (e) => {
+                e.preventDefault();
+                if (actionType === 'key') {
+                    this.keys[actionKey] = true;
+                } else if (actionType === 'mouse') {
+                    this.mouseDown[actionKey] = true;
+                }
+            };
+            
+            const stopAction = (e) => {
+                e.preventDefault();
+                if (actionType === 'key') {
+                    this.keys[actionKey] = false;
+                } else if (actionType === 'mouse') {
+                    this.mouseDown[actionKey] = false;
+                }
+            };
+            
+            const leaveAction = () => {
+                if (actionType === 'key') {
+                    this.keys[actionKey] = false;
+                } else if (actionType === 'mouse') {
+                    this.mouseDown[actionKey] = false;
+                }
+            };
+            
+            button.addEventListener('touchstart', startAction);
+            button.addEventListener('touchend', stopAction);
+            button.addEventListener('mousedown', startAction);
+            button.addEventListener('mouseup', stopAction);
+            button.addEventListener('mouseleave', leaveAction);
+        };
         
-        // Sail angle controls
-        const sailInBtn = document.getElementById('sailInBtn');
-        const sailOutBtn = document.getElementById('sailOutBtn');
+        // Rudder controls (equivalent to A/D keys)
+        addButtonListeners('rudderLeftBtn', 'key', 'a');
+        addButtonListeners('rudderRightBtn', 'key', 'd');
         
-        if (rudderLeftBtn && rudderRightBtn && sailInBtn && sailOutBtn) {
-            // Rudder left button (equivalent to 'A' key)
-            rudderLeftBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                this.keys['a'] = true;
-            });
-            rudderLeftBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                this.keys['a'] = false;
-            });
-            rudderLeftBtn.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                this.keys['a'] = true;
-            });
-            rudderLeftBtn.addEventListener('mouseup', (e) => {
-                e.preventDefault();
-                this.keys['a'] = false;
-            });
-            rudderLeftBtn.addEventListener('mouseleave', (e) => {
-                this.keys['a'] = false;
-            });
-            
-            // Rudder right button (equivalent to 'D' key)
-            rudderRightBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                this.keys['d'] = true;
-            });
-            rudderRightBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                this.keys['d'] = false;
-            });
-            rudderRightBtn.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                this.keys['d'] = true;
-            });
-            rudderRightBtn.addEventListener('mouseup', (e) => {
-                e.preventDefault();
-                this.keys['d'] = false;
-            });
-            rudderRightBtn.addEventListener('mouseleave', (e) => {
-                this.keys['d'] = false;
-            });
-            
-            // Sail in button (equivalent to left mouse button)
-            sailInBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                this.mouseDown.left = true;
-            });
-            sailInBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                this.mouseDown.left = false;
-            });
-            sailInBtn.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                this.mouseDown.left = true;
-            });
-            sailInBtn.addEventListener('mouseup', (e) => {
-                e.preventDefault();
-                this.mouseDown.left = false;
-            });
-            sailInBtn.addEventListener('mouseleave', (e) => {
-                this.mouseDown.left = false;
-            });
-            
-            // Sail out button (equivalent to right mouse button)
-            sailOutBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                this.mouseDown.right = true;
-            });
-            sailOutBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                this.mouseDown.right = false;
-            });
-            sailOutBtn.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                this.mouseDown.right = true;
-            });
-            sailOutBtn.addEventListener('mouseup', (e) => {
-                e.preventDefault();
-                this.mouseDown.right = false;
-            });
-            sailOutBtn.addEventListener('mouseleave', (e) => {
-                this.mouseDown.right = false;
-            });
-        }
+        // Sail angle controls (equivalent to left/right mouse buttons)
+        addButtonListeners('sailInBtn', 'mouse', 'left');
+        addButtonListeners('sailOutBtn', 'mouse', 'right');
     }
     
     updateControls() {
