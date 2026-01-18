@@ -452,12 +452,19 @@ class SailingGame {
     }
     
     updateUI() {
-        document.getElementById('speed').textContent = 
-            `Speed: ${this.boat.speed.toFixed(1)} knots`;
-        document.getElementById('heading').textContent = 
-            `Heading: ${Math.round((this.boat.angle * 180 / Math.PI + 360) % 360)}°`;
-        document.getElementById('sailPos').textContent = 
-            `Sail Height: ${Math.round(this.boat.sailHeight * 100)}%`;
+        const speedEl = document.getElementById('speed');
+        const headingEl = document.getElementById('heading');
+        const sailPosEl = document.getElementById('sailPos');
+        
+        if (speedEl) {
+            speedEl.textContent = `Speed: ${this.boat.speed.toFixed(1)} knots`;
+        }
+        if (headingEl) {
+            headingEl.textContent = `Heading: ${Math.round((this.boat.angle * 180 / Math.PI + 360) % 360)}°`;
+        }
+        if (sailPosEl) {
+            sailPosEl.textContent = `Sail Height: ${Math.round(this.boat.sailHeight * 100)}%`;
+        }
     }
     
     gameLoop() {
