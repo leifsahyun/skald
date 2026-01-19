@@ -317,28 +317,28 @@ class SailingGame {
         
         // Draw wind sparkles on waves
         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-        for (let i = 0; i < 100; i++) {
-            // Calculate perpendicular angle to wind for distributing sparkles
-            const perpAngle = this.wind.angle + Math.PI / 2;
-            
-            // Base position along perpendicular line (distributes sparkles)
-            const perpOffset = (i * 30) % (this.width + this.height);
-            const baseX = Math.cos(perpAngle) * perpOffset;
-            const baseY = Math.sin(perpAngle) * perpOffset;
-            
-            // Movement along wind direction
-            const windMovement = (this.time * 10) % (this.width + this.height);
-            const moveX = Math.cos(this.wind.angle) * windMovement;
-            const moveY = Math.sin(this.wind.angle) * windMovement;
-            
-            // Final position (wrap around canvas, add offset to ensure positive values before modulo)
-            const x = (baseX + moveX + this.width * 2) % this.width;
-            const y = (baseY + moveY + this.height * 2) % this.height;
-            
-            const size = Math.sin(this.time * 0.1 + i) * 1.5 + 2;
-            ctx.beginPath();
-            ctx.arc(x, y, size, 0, Math.PI * 2);
-            ctx.fill();
+        for (let band = 0; band<3; band++)
+        {
+            for (let i = 0; i < 100; i++) {
+                // Base position along wind line (distributes sparkles)
+                const posOffset = (i * 30 + 4000*band);
+                const baseX = (Math.cos(this.wind.angle) * posOffset) % this.width;
+                const baseY = (Math.sin(this.wind.angle) * posOffset) % this.height;
+                
+                // Movement along wind direction
+                const windMovement = (this.time * 10) % (this.width + this.height);
+                const moveX = Math.cos(this.wind.angle) * windMovement;
+                const moveY = Math.sin(this.wind.angle) * windMovement;
+                
+                // Final position (wrap around canvas, add offset to ensure positive values before modulo)
+                const x = (baseX + moveX + this.width * 2) % this.width;
+                const y = (baseY + moveY + this.height * 2) % this.height;
+                
+                const size = Math.sin(this.time * 0.1 + i) * 1.5 + 2;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
     }
     
