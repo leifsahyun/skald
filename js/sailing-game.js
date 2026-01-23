@@ -203,10 +203,10 @@ class SailingGame {
         // Update speed (with drag)
         this.boat.speed += force * 0.05;
         this.boat.speed *= 0.97; // Drag
-        this.boat.speed = Math.max(0, Math.min(5, this.boat.speed));
+        this.boat.speed = Math.min(5, this.boat.speed);
         
         // Turn based on rudder (only when moving)
-        if (this.boat.speed > 0.1) {
+        if (Math.abs(this.boat.speed) > 0.1) {
             const turnRate = (this.boat.rudderAngle / 30) * 0.02 * this.boat.speed;
             this.boat.angle += turnRate;
         }
