@@ -27,7 +27,12 @@ class SailingGame {
             speed: 3.0,
             changeRate: 0.0005,  // How fast the wind angle changes (radians per frame)
             targetAngle: null,   // Target angle for wind to shift towards
-            targetThreshold: 0.01  // How close to target before picking new target (radians)
+            targetThreshold: 0.01,  // How close to target before picking new target (radians)
+            rootPos: // Transformation for sparkle particles
+            {
+                x: 0,
+                y: 0
+            }
         };
         
         // Initialize first target wind angle
@@ -326,13 +331,12 @@ class SailingGame {
                 const baseY = (Math.sin(this.wind.angle) * posOffset) % this.height;
                 
                 // Movement along wind direction
-                const windMovement = 0.02 * (this.time);
-                const moveX = (Math.cos(this.wind.angle) * windMovement) % this.width;
-                const moveY = (Math.sin(this.wind.angle) * windMovement) % this.height;
+                this.wind.rootPos.x += 0.02 * Math.cos(this.wind.angle)
+                this.wind.rootPos.y += 0.02 * Math.sin(this.wind.angle)
                 
                 // Final position (wrap around canvas, add offset to ensure positive values before modulo)
-                const x = (baseX + moveX + this.width * 2) % this.width;
-                const y = (baseY + moveY + this.height * 2) % this.height;
+                const x = (baseX + this.wind.rootPos.x + this.width * 2) % this.width;
+                const y = (baseY + this.wind.rootPos.y + this.height * 2) % this.height;
                 
                 const size = Math.sin(this.time * 0.1 + i) * 1.5 + 2;
                 ctx.beginPath();
