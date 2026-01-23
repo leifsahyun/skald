@@ -322,17 +322,17 @@ class SailingGame {
         
         // Draw wind sparkles on waves
         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-        for (let band = 0; band<3; band++)
+        for (let band = 0; band<6; band++)
         {
-            for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 30; i++) {
                 // Base position along wind line (distributes sparkles)
                 const posOffset = (i * 30 + 4000*band);
                 const baseX = (Math.cos(this.wind.angle) * posOffset) % this.width;
                 const baseY = (Math.sin(this.wind.angle) * posOffset) % this.height;
                 
                 // Movement along wind direction
-                this.wind.rootPos.x += 0.02 * Math.cos(this.wind.angle)
-                this.wind.rootPos.y += 0.02 * Math.sin(this.wind.angle)
+                this.wind.rootPos.x += 0.005 * Math.cos(this.wind.angle)
+                this.wind.rootPos.y += 0.005 * Math.sin(this.wind.angle)
                 
                 // Final position (wrap around canvas, add offset to ensure positive values before modulo)
                 const x = (baseX + this.wind.rootPos.x + this.width * 2) % this.width;
