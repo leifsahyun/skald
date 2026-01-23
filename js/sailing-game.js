@@ -193,7 +193,9 @@ class SailingGame {
         while (relativeWindAngle < -Math.PI) relativeWindAngle += 2 * Math.PI;
         
         // Calculate how aligned the sail is with the wind
-        const sailEfficiency = Math.abs(Math.cos(relativeWindAngle - sailAngleRad));
+        let sailEfficiency = Math.abs(Math.cos(relativeWindAngle - sailAngleRad));
+        if (Math.cos(relativeWindAngle) < 0) // If moving boat backwards
+            sailEfficiency = -0.2 * sailEfficiency;
         
         // Apply force based on sail height and efficiency
         const force = this.wind.speed * sailEfficiency * this.boat.sailHeight * 0.3;
