@@ -326,7 +326,7 @@ class SailingGame {
                 const baseY = (Math.sin(this.wind.angle) * posOffset) % this.height;
                 
                 // Movement along wind direction
-                const windMovement = (this.time);
+                const windMovement = 0.02 * (this.time);
                 const moveX = (Math.cos(this.wind.angle) * windMovement) % this.width;
                 const moveY = (Math.sin(this.wind.angle) * windMovement) % this.height;
                 
