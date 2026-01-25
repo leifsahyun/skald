@@ -45,11 +45,11 @@ class SailingGame {
         // Coastline configuration
         this.coastline = {
             svgData: null,
-            scaleFactor: 3.0,  // Configurable scale factor for coastline
+            scaleFactor: 8.0,  // Configurable scale factor for coastline
             chunkPosition:
             {
-                x: 0,
-                y: 100
+                x: 60,
+                y: 160
             },
             loaded: false
         };
@@ -267,9 +267,6 @@ class SailingGame {
         gradient.addColorStop(1, '#1a4f6a');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, this.width, this.height);
-        
-        // Draw coastline if loaded
-        this.drawCoastline();
         
         // Draw animated waves
         ctx.save();
@@ -548,6 +545,7 @@ class SailingGame {
         
         // Draw
         this.drawOcean();
+        this.drawCoastline();
         this.drawWind();
         this.drawBoat();
         
