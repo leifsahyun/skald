@@ -301,7 +301,7 @@ class SailingGame {
             const pressDuration = this.keyPressTime['w'] !== undefined ? now - this.keyPressTime['w'] : 0;
             if (pressDuration >= LONG_PRESS_DURATION) {
                 // Held for 5+ seconds: raise sail to full height
-                this.boat.sailHeight = Math.min(1.0, this.boat.sailHeight + 0.02);
+                this.boat.sailHeight = 1.0;
             } else {
                 // Short press: row forward
                 this.applyRowingForce();
@@ -313,7 +313,7 @@ class SailingGame {
             const pressDuration = this.keyPressTime['s'] !== undefined ? now - this.keyPressTime['s'] : 0;
             if (pressDuration >= SHORT_PRESS_DURATION) {
                 // Held for 2+ seconds: drop sail quickly
-                this.boat.sailHeight = Math.max(0.0, this.boat.sailHeight - 0.02);
+                this.boat.sailHeight = 0;
             }
         }
         
@@ -324,11 +324,12 @@ class SailingGame {
                 // Held for 5+ seconds
                 if (this.boat.sailHeight > SAIL_THRESHOLD) {
                     // Sail is raised, lower it
-                    this.boat.sailHeight = Math.max(0.0, this.boat.sailHeight - 0.02);
+                    this.boat.sailHeight = 0;
                 } else {
                     // Sail is lowered, raise it
-                    this.boat.sailHeight = Math.min(1.0, this.boat.sailHeight + 0.02);
+                    this.boat.sailHeight = 1.0;
                 }
+                this.buttonPressTime['forward'] = now;
             } else {
                 // Short press: row forward
                 this.applyRowingForce();
@@ -348,7 +349,8 @@ class SailingGame {
         // Rowing provides a small forward force regardless of wind
         // This is independent of sail and wind
         const rowingForce = 0.15;
-        this.boat.speed = Math.min(this.boat.maxSpeed, this.boat.speed + rowingForce);
+        const maxRowSpeed = 0.75;
+        this.boat.speed = Math.min(maxRowSpeed, this.boat.speed + rowingForce);
     }
     
     updateWind() {
