@@ -282,8 +282,8 @@ class SailingGame {
     
     updateControls() {
         const now = Date.now();
-        const LONG_PRESS_DURATION = 5000; // 5 seconds
-        const SHORT_PRESS_DURATION = 2000; // 2 seconds for 's' key
+        const LONG_PRESS_DURATION = 3000; // 5 seconds
+        const SHORT_PRESS_DURATION = 3000; // 2 seconds for 's' key
         const SAIL_THRESHOLD = 0.5; // Threshold to determine if sail is raised or lowered
         
         // Rudder control (A/D keys)
