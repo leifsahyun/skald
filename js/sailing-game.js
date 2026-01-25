@@ -545,6 +545,7 @@ class SailingGame {
         ctx.fill();
         
         // Sail (triangle)
+        const mastHeight = 60 * this.boat.sailHeight;
         if (this.boat.sailHeight > 0.1) {
             ctx.save();
             ctx.rotate((boat.sailAngle * Math.PI) / 180);
