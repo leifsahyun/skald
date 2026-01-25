@@ -298,7 +298,7 @@ class SailingGame {
         
         // W key behavior: row if short press, raise sail if held for 5+ seconds
         if (this.keys['w']) {
-            const pressDuration = this.keyPressTime['w'] ? now - this.keyPressTime['w'] : 0;
+            const pressDuration = this.keyPressTime['w'] !== undefined ? now - this.keyPressTime['w'] : 0;
             if (pressDuration >= LONG_PRESS_DURATION) {
                 // Held for 5+ seconds: raise sail to full height
                 this.boat.sailHeight = Math.min(1.0, this.boat.sailHeight + 0.02);
@@ -310,7 +310,7 @@ class SailingGame {
         
         // S key behavior: take down sail completely after being held for a few seconds
         if (this.keys['s']) {
-            const pressDuration = this.keyPressTime['s'] ? now - this.keyPressTime['s'] : 0;
+            const pressDuration = this.keyPressTime['s'] !== undefined ? now - this.keyPressTime['s'] : 0;
             if (pressDuration >= SHORT_PRESS_DURATION) {
                 // Held for 2+ seconds: drop sail quickly
                 this.boat.sailHeight = Math.max(0.0, this.boat.sailHeight - 0.02);
@@ -318,7 +318,7 @@ class SailingGame {
         }
         
         // Forward button behavior
-        if ('forward' in this.buttonPressTime) {
+        if (this.buttonPressTime['forward'] !== undefined) {
             const pressDuration = now - this.buttonPressTime['forward'];
             if (pressDuration >= LONG_PRESS_DURATION) {
                 // Held for 5+ seconds
