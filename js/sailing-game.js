@@ -61,7 +61,12 @@ class SailingGame {
     loadCoastline() {
         // Load SVG coastline data
         fetch('map/chunks/e08f11e3-025d-43bf-b2be-a3633f877bbd.svg')
-            .then(response => response.text())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
             .then(svgText => {
                 const parser = new DOMParser();
                 const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
