@@ -217,7 +217,7 @@ class SailingGame {
         const waveMultiplier = 0.15;
         const tidalMultiplier = 1;
         const pullOffset = 0.7;
-        const windwardAllowance = 0.4;
+        const windwardAllowance = 0.5;
         
         // Relative wind angle to boat
         let relativeWindAngle = windAngle - boatAngle;
