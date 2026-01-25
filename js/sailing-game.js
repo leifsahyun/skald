@@ -9,9 +9,11 @@ class SailingGame {
         this.height = canvas.height;
         
         // Boat state
+        // Start boat at position corresponding to chunk (15, 145) in world coordinates
+        // World position = chunk position * scaleFactor
         this.boat = {
-            x: 0,
-            y: 0,
+            x: 15 * 165.0,
+            y: 145 * 165.0,
             angle: 0,           // Direction boat is facing (radians)
             speed: 0,
             rudderAngle: 0,     // Current rudder angle (-30 to 30 degrees)
@@ -44,14 +46,12 @@ class SailingGame {
         
         // Coastline configuration
         this.coastline = {
-            svgData: null,
             scaleFactor: 165.0,  // Configurable scale factor for coastline
-            chunkPosition:
-            {
-                x: 15,
-                y: 145
-            },
-            loaded: false
+            chunks: new Map(),  // Map of chunk key -> {x, y, svgData, loaded}
+            chunkIndex: [],  // Array of {x, y, fileName} from index.csv
+            chunkSize: 5,  // Chunk size in world units
+            loadDistance: 2,  // Load chunks within this many chunks from boat position
+            indexLoaded: false
         };
         
         // Controls
@@ -59,13 +59,72 @@ class SailingGame {
         this.mouseDown = { left: false, right: false };
         
         this.setupControls();
-        this.loadCoastline();
+        this.loadChunkIndex();
         this.gameLoop();
     }
     
-    loadCoastline() {
-        // Load SVG coastline data
-        fetch('map/chunks/97538901-1f39-4575-ae14-60719473e077.svg')
+    loadChunkIndex() {
+        // Load the chunk index CSV file
+        fetch('map/chunks/index.csv')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(csvText => {
+                const lines = csvText.trim().split('\n');
+                this.coastline.chunkIndex = lines.map(line => {
+                    const [x, y, fileName] = line.split(',');
+                    return {
+                        x: parseFloat(x),
+                        y: parseFloat(y),
+                        fileName: fileName.trim()
+                    };
+                });
+                this.coastline.indexLoaded = true;
+            })
+            .catch(error => {
+                console.error('Failed to load chunk index:', error);
+            });
+    }
+    
+    getChunkKey(chunkX, chunkY) {
+        return `${chunkX},${chunkY}`;
+    }
+    
+    getChunkCoordsFromWorldPos(worldX, worldY) {
+        // Convert world position to chunk coordinates
+        const scale = this.coastline.scaleFactor;
+        const chunkX = Math.floor((worldX / scale) / this.coastline.chunkSize) * this.coastline.chunkSize;
+        const chunkY = Math.floor((worldY / scale) / this.coastline.chunkSize) * this.coastline.chunkSize;
+        return { chunkX, chunkY };
+    }
+    
+    loadChunk(chunkX, chunkY) {
+        const key = this.getChunkKey(chunkX, chunkY);
+        
+        // Check if chunk is already loaded or loading
+        if (this.coastline.chunks.has(key)) {
+            return;
+        }
+        
+        // Find chunk in index
+        const chunkData = this.coastline.chunkIndex.find(c => c.x === chunkX && c.y === chunkY);
+        if (!chunkData) {
+            return; // Chunk doesn't exist
+        }
+        
+        // Mark as loading
+        this.coastline.chunks.set(key, {
+            x: chunkX,
+            y: chunkY,
+            svgData: null,
+            loaded: false
+        });
+        
+        // Load the chunk SVG
+        fetch(`map/${chunkData.fileName}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -75,12 +134,47 @@ class SailingGame {
             .then(svgText => {
                 const parser = new DOMParser();
                 const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
-                this.coastline.svgData = svgDoc;
-                this.coastline.loaded = true;
+                const chunk = this.coastline.chunks.get(key);
+                if (chunk) {
+                    chunk.svgData = svgDoc;
+                    chunk.loaded = true;
+                }
             })
             .catch(error => {
-                console.error('Failed to load coastline SVG:', error);
+                console.error(`Failed to load chunk ${key} from ${chunkData.fileName}:`, error);
+                this.coastline.chunks.delete(key);
             });
+    }
+    
+    updateChunks() {
+        if (!this.coastline.indexLoaded) {
+            return;
+        }
+        
+        // Get current boat chunk position
+        const { chunkX, chunkY } = this.getChunkCoordsFromWorldPos(this.boat.x, this.boat.y);
+        
+        // Load chunks in a radius around the boat
+        const loadDist = this.coastline.loadDistance;
+        for (let dx = -loadDist; dx <= loadDist; dx++) {
+            for (let dy = -loadDist; dy <= loadDist; dy++) {
+                const targetChunkX = chunkX + dx * this.coastline.chunkSize;
+                const targetChunkY = chunkY + dy * this.coastline.chunkSize;
+                this.loadChunk(targetChunkX, targetChunkY);
+            }
+        }
+        
+        // Unload chunks that are too far away
+        const unloadDist = loadDist + 1;
+        const chunksToRemove = [];
+        for (const [key, chunk] of this.coastline.chunks.entries()) {
+            const dx = Math.abs(chunk.x - chunkX) / this.coastline.chunkSize;
+            const dy = Math.abs(chunk.y - chunkY) / this.coastline.chunkSize;
+            if (dx > unloadDist || dy > unloadDist) {
+                chunksToRemove.push(key);
+            }
+        }
+        chunksToRemove.forEach(key => this.coastline.chunks.delete(key));
     }
     
     setupControls() {
@@ -290,7 +384,7 @@ class SailingGame {
     }
     
     drawCoastline() {
-        if (!this.coastline.loaded || !this.coastline.svgData) {
+        if (!this.coastline.indexLoaded || this.coastline.chunks.size === 0) {
             return;
         }
         
@@ -298,26 +392,35 @@ class SailingGame {
         const scale = this.coastline.scaleFactor;
         
         ctx.save();
+        // Center the view on the boat
+        ctx.translate(this.width / 2, this.height / 2);
         ctx.translate(-this.boat.x, -this.boat.y);
         ctx.scale(scale, scale);
-        ctx.translate(-this.coastline.chunkPosition.x, -this.coastline.chunkPosition.y);
         
-        // Get all path elements from the SVG
-        const paths = this.coastline.svgData.querySelectorAll('path');
-        
-        // Draw each path as coastline
+        // Draw each loaded chunk
         ctx.strokeStyle = '#654321';  // Dark brown color for coastline
         ctx.lineWidth = 1.0 / scale;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         
-        paths.forEach(pathElement => {
-            const pathData = pathElement.getAttribute('d');
-            if (pathData) {
-                const path2d = new Path2D(pathData);
-                ctx.stroke(path2d);
+        for (const [key, chunk] of this.coastline.chunks.entries()) {
+            if (!chunk.loaded || !chunk.svgData) {
+                continue;
             }
-        });
+            
+            // SVG paths contain absolute coordinates in map space, so no need to translate per-chunk
+            // Get all path elements from the SVG
+            const paths = chunk.svgData.querySelectorAll('path');
+            
+            // Draw each path as coastline
+            paths.forEach(pathElement => {
+                const pathData = pathElement.getAttribute('d');
+                if (pathData) {
+                    const path2d = new Path2D(pathData);
+                    ctx.stroke(path2d);
+                }
+            });
+        }
         
         ctx.restore();
     }
@@ -534,6 +637,7 @@ class SailingGame {
         this.updateControls();
         this.updateWind();
         this.updatePhysics();
+        this.updateChunks();
         
         // Clear canvas
         this.ctx.clearRect(0, 0, this.width, this.height);
