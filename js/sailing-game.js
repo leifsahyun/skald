@@ -217,6 +217,7 @@ class SailingGame {
         const waveMultiplier = 0.15;
         const tidalMultiplier = 1;
         const pullOffset = 0.7;
+        const windwardAllowance = 0.2;
         
         // Relative wind angle to boat
         let relativeWindAngle = windAngle - boatAngle;
@@ -226,7 +227,7 @@ class SailingGame {
         while (relativeWindAngle < -Math.PI) relativeWindAngle += 2 * Math.PI;
         
         // Calculate how aligned the sail is with the wind
-        let sailEfficiency = Math.abs(Math.cos(relativeWindAngle - sailAngleRad)) * Math.cos(relativeWindAngle);
+        let sailEfficiency = Math.abs(Math.cos(relativeWindAngle - sailAngleRad)) * (Math.cos(relativeWindAngle) + windwardAllowance);
         
         // Apply force based on sail height and efficiency
         const force = this.wind.speed * sailEfficiency * this.boat.sailHeight * 0.3;
