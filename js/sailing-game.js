@@ -218,6 +218,7 @@ class SailingGame {
         const tidalMultiplier = 1;
         const pullOffset = 0.7;
         const windwardAllowance = 0.5;
+        const maxSpeed = 10;
         
         // Relative wind angle to boat
         let relativeWindAngle = windAngle - boatAngle;
@@ -234,14 +235,12 @@ class SailingGame {
         
         // Update speed (with drag)
         this.boat.speed += force * 0.05;
-        this.boat.speed *= 0.97; // Drag
-        this.boat.speed = Math.min(5, this.boat.speed);
+        this.boat.speed *= 0.98; // Drag
+        this.boat.speed = Math.min(maxSpeed, this.boat.speed);
         
-        // Turn based on rudder (only when moving)
-        if (Math.abs(this.boat.speed) > 0.1) {
-            const turnRate = (this.boat.rudderAngle / 30) * 0.02 * this.boat.speed;
-            this.boat.angle += turnRate;
-        }
+        // Turn based on rudder
+        const turnRate = (this.boat.rudderAngle / 30) * 0.02 * this.boat.speed;
+        this.boat.angle += turnRate;
         
         // Apply speed from waves
         let waveSpeed = Math.max(0, Math.sin(this.time) + 2 * Math.sin(this.time / 2)) - pullOffset;
