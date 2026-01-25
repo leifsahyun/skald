@@ -26,3 +26,10 @@ Desktop.ini
 *.tmp
 tmp/
 temp/
+
+# Node modules
+node_modules/
+package-lock.json
+
+# Keep libs directory
+!js/libs/
