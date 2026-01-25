@@ -10,8 +10,8 @@ class SailingGame {
         
         // Boat state
         this.boat = {
-            x: this.width / 2,
-            y: this.height / 2,
+            x: 0,
+            y: 0,
             angle: 0,           // Direction boat is facing (radians)
             speed: 0,
             rudderAngle: 0,     // Current rudder angle (-30 to 30 degrees)
@@ -303,7 +303,7 @@ class SailingGame {
         const scale = this.coastline.scaleFactor;
         
         ctx.save();
-        ctx.translate(boat.x, boat.y);
+        ctx.translate(-this.boat.x, -this.boat.y);
         ctx.scale(scale, scale);
         ctx.translate(-this.coastline.chunkPosition.x, -this.coastline.chunkPosition.y);
         
