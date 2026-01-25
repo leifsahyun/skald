@@ -250,10 +250,6 @@ class SailingGame {
         // Move boat
         this.boat.x += Math.cos(this.boat.angle) * this.boat.speed + waveSpeed;
         this.boat.y += Math.sin(this.boat.angle) * this.boat.speed;
-        
-        // Keep boat in bounds
-        this.boat.x = Math.max(50, Math.min(this.width-50, this.boat.x));
-        this.boat.y = Math.max(50, Math.min(this.height-50, this.boat.y));
     }
     
     drawOcean() {
