@@ -95,9 +95,11 @@ class SailingGame {
     
     getChunkCoordsFromWorldPos(worldX, worldY) {
         // Convert world position to chunk coordinates
+        // World coords are scaled by scaleFactor from map coords
+        // Chunks are aligned to chunkSize boundaries in map coordinates
         const scale = this.coastline.scaleFactor;
-        const chunkX = Math.floor((worldX / scale) / this.coastline.chunkSize) * this.coastline.chunkSize;
-        const chunkY = Math.floor((worldY / scale) / this.coastline.chunkSize) * this.coastline.chunkSize;
+        const chunkX = Math.floor(worldX / scale / this.coastline.chunkSize) * this.coastline.chunkSize;
+        const chunkY = Math.floor(worldY / scale / this.coastline.chunkSize) * this.coastline.chunkSize;
         return { chunkX, chunkY };
     }
     
@@ -124,6 +126,7 @@ class SailingGame {
         });
         
         // Load the chunk SVG
+        // CSV fileName includes 'chunks/' prefix, so we just prepend 'map/'
         fetch(`map/${chunkData.fileName}`)
             .then(response => {
                 if (!response.ok) {
@@ -165,11 +168,11 @@ class SailingGame {
         }
         
         // Unload chunks that are too far away
-        const unloadDist = loadDist + 1;
+        const unloadDist = (loadDist + 1) * this.coastline.chunkSize;
         const chunksToRemove = [];
         for (const [key, chunk] of this.coastline.chunks.entries()) {
-            const dx = Math.abs(chunk.x - chunkX) / this.coastline.chunkSize;
-            const dy = Math.abs(chunk.y - chunkY) / this.coastline.chunkSize;
+            const dx = Math.abs(chunk.x - chunkX);
+            const dy = Math.abs(chunk.y - chunkY);
             if (dx > unloadDist || dy > unloadDist) {
                 chunksToRemove.push(key);
             }
