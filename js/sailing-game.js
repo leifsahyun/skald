@@ -45,10 +45,10 @@ class SailingGame {
         // Coastline configuration
         this.coastline = {
             svgData: null,
-            scaleFactor: 7.0,  // Configurable scale factor for coastline
+            scaleFactor: 85.0,  // Configurable scale factor for coastline
             chunkPosition:
             {
-                x: 60,
+                x: 58,
                 y: 160
             },
             loaded: false
@@ -312,7 +312,7 @@ class SailingGame {
         
         // Draw each path as coastline
         ctx.strokeStyle = '#654321';  // Dark brown color for coastline
-        ctx.lineWidth = 0.5;
+        ctx.lineWidth = 1.0 / scale;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         
