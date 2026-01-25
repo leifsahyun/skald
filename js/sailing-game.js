@@ -26,6 +26,7 @@ class SailingGame {
             y: 145 * this.coastline.scaleFactor,
             angle: 0,           // Direction boat is facing (radians)
             speed: 0,
+            maxSpeed: 10,       // Maximum boat speed
             rudderAngle: 0,     // Current rudder angle (-30 to 30 degrees)
             sailAngle: 0,       // Sail angle relative to boat (-90 to 90 degrees)
             sailHeight: 1.0,    // 0 to 1, how much sail is raised
@@ -310,13 +311,13 @@ class SailingGame {
         if (this.keys['s']) {
             const pressDuration = now - this.keyPressTime['s'];
             if (pressDuration >= SHORT_PRESS_DURATION) {
-                // Held for 2+ seconds: drop sail completely
-                this.boat.sailHeight = Math.max(0.0, this.boat.sailHeight - 0.04);
+                // Held for 2+ seconds: drop sail quickly
+                this.boat.sailHeight = Math.max(0.0, this.boat.sailHeight - 0.02);
             }
         }
         
         // Forward button behavior
-        if (this.buttonPressTime['forward'] !== undefined) {
+        if ('forward' in this.buttonPressTime) {
             const pressDuration = now - this.buttonPressTime['forward'];
             if (pressDuration >= LONG_PRESS_DURATION) {
                 // Held for 5+ seconds
@@ -346,7 +347,7 @@ class SailingGame {
         // Rowing provides a small forward force regardless of wind
         // This is independent of sail and wind
         const rowingForce = 0.15;
-        this.boat.speed = Math.min(10, this.boat.speed + rowingForce);
+        this.boat.speed = Math.min(this.boat.maxSpeed, this.boat.speed + rowingForce);
     }
     
     updateWind() {
@@ -377,7 +378,6 @@ class SailingGame {
         const tidalMultiplier = 1;
         const pullOffset = 0.7;
         const windwardAllowance = 0.5;
-        const maxSpeed = 10;
         
         // Relative wind angle to boat
         let relativeWindAngle = windAngle - boatAngle;
@@ -395,7 +395,7 @@ class SailingGame {
         // Update speed (with drag)
         this.boat.speed += force * 0.05;
         this.boat.speed *= 0.98; // Drag
-        this.boat.speed = Math.min(maxSpeed, this.boat.speed);
+        this.boat.speed = Math.min(this.boat.maxSpeed, this.boat.speed);
         
         // Turn based on rudder
         const turnRate = (this.boat.rudderAngle / 30) * 0.02 * this.boat.speed;
