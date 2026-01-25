@@ -45,7 +45,12 @@ class SailingGame {
         // Coastline configuration
         this.coastline = {
             svgData: null,
-            scaleFactor: 1.5,  // Configurable scale factor for coastline
+            scaleFactor: 3.0,  // Configurable scale factor for coastline
+            chunkPosition:
+            {
+                x: 0,
+                y: 100
+            },
             loaded: false
         };
         
@@ -302,6 +307,7 @@ class SailingGame {
         const scale = this.coastline.scaleFactor;
         
         ctx.save();
+        ctx.translate(-this.coastline.chunkPosition.x, -this.coastline.chunkPosition.y);
         ctx.scale(scale, scale);
         
         // Get all path elements from the SVG
@@ -309,7 +315,7 @@ class SailingGame {
         
         // Draw each path as coastline
         ctx.strokeStyle = '#654321';  // Dark brown color for coastline
-        ctx.lineWidth = 0.8 / scale;  // Adjust line width for scale
+        ctx.lineWidth = 0.5;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         
