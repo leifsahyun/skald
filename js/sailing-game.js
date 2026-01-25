@@ -48,8 +48,8 @@ class SailingGame {
             scaleFactor: 7.0,  // Configurable scale factor for coastline
             chunkPosition:
             {
-                x: 68,
-                y: 168
+                x: 60,
+                y: 160
             },
             loaded: false
         };
@@ -304,8 +304,8 @@ class SailingGame {
         const scale = this.coastline.scaleFactor;
         
         ctx.save();
-        ctx.translate(-this.coastline.chunkPosition.x, -this.coastline.chunkPosition.y);
         ctx.scale(scale, scale);
+        ctx.translate(-this.coastline.chunkPosition.x, -this.coastline.chunkPosition.y);
         
         // Get all path elements from the SVG
         const paths = this.coastline.svgData.querySelectorAll('path');
