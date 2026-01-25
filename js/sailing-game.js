@@ -7,13 +7,23 @@ class SailingGame {
         this.ctx = canvas.getContext('2d');
         this.width = canvas.width;
         this.height = canvas.height;
+
+        // Coastline configuration
+        this.coastline = {
+            scaleFactor: 400.0,  // Configurable scale factor for coastline
+            chunks: new Map(),  // Map of chunk key -> {x, y, svgData, loaded}
+            chunkIndex: [],  // Array of {x, y, fileName} from index.csv
+            chunkSize: 5,  // Chunk size in world units
+            loadDistance: 2,  // Load chunks within this many chunks from boat position
+            indexLoaded: false
+        };
         
         // Boat state
         // Start boat at position corresponding to chunk (15, 145) in world coordinates
         // World position = chunk position * scaleFactor
         this.boat = {
-            x: 15 * 165.0,
-            y: 145 * 165.0,
+            x: 15 * this.coastline.scaleFactor,
+            y: 145 * this.coastline.scaleFactor,
             angle: 0,           // Direction boat is facing (radians)
             speed: 0,
             rudderAngle: 0,     // Current rudder angle (-30 to 30 degrees)
@@ -43,16 +53,6 @@ class SailingGame {
         // Ocean animation
         this.waveOffset = 0;
         this.time = 0;
-        
-        // Coastline configuration
-        this.coastline = {
-            scaleFactor: 165.0,  // Configurable scale factor for coastline
-            chunks: new Map(),  // Map of chunk key -> {x, y, svgData, loaded}
-            chunkIndex: [],  // Array of {x, y, fileName} from index.csv
-            chunkSize: 5,  // Chunk size in world units
-            loadDistance: 2,  // Load chunks within this many chunks from boat position
-            indexLoaded: false
-        };
         
         // Controls
         this.keys = {};
