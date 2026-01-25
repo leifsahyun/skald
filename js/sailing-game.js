@@ -303,6 +303,7 @@ class SailingGame {
         const scale = this.coastline.scaleFactor;
         
         ctx.save();
+        ctx.translate(boat.x, boat.y);
         ctx.scale(scale, scale);
         ctx.translate(-this.coastline.chunkPosition.x, -this.coastline.chunkPosition.y);
         
@@ -417,7 +418,7 @@ class SailingGame {
         const boat = this.boat;
         
         ctx.save();
-        ctx.translate(boat.x, boat.y);
+        ctx.translate(this.width/2, this.height/2);
         ctx.rotate(boat.angle);
         
         // Boat hull (simple triangle shape)
