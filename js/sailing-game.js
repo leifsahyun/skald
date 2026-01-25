@@ -45,11 +45,11 @@ class SailingGame {
         // Coastline configuration
         this.coastline = {
             svgData: null,
-            scaleFactor: 5.0,  // Configurable scale factor for coastline
+            scaleFactor: 7.0,  // Configurable scale factor for coastline
             chunkPosition:
             {
-                x: 60,
-                y: 160
+                x: 68,
+                y: 168
             },
             loaded: false
         };
