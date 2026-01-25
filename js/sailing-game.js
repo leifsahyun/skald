@@ -45,11 +45,11 @@ class SailingGame {
         // Coastline configuration
         this.coastline = {
             svgData: null,
-            scaleFactor: 800.0,  // Configurable scale factor for coastline
+            scaleFactor: 165.0,  // Configurable scale factor for coastline
             chunkPosition:
             {
-                x: 44,
-                y: 119
+                x: 15,
+                y: 145
             },
             loaded: false
         };
@@ -65,7 +65,7 @@ class SailingGame {
     
     loadCoastline() {
         // Load SVG coastline data
-        fetch('map/chunks/f35b2e0a-917b-4a75-a105-aa34365a14f7.svg')
+        fetch('map/chunks/97538901-1f39-4575-ae14-60719473e077.svg')
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
