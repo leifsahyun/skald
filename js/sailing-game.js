@@ -10,7 +10,7 @@ class SailingGame {
 
         // Coastline configuration
         this.coastline = {
-            scaleFactor: 400.0,  // Configurable scale factor for coastline
+            scaleFactor: 300.0,  // Configurable scale factor for coastline
             chunks: new Map(),  // Map of chunk key -> {x, y, svgData, loaded}
             chunkIndex: [],  // Array of {x, y, fileName} from index.csv
             chunkSize: 5,  // Chunk size in world units
