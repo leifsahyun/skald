@@ -487,7 +487,7 @@ class SailingGame {
         ctx.fillStyle = '#2c3e50';
         ctx.font = '12px Arial';
         ctx.fillText('WIND', centerX, centerY + 70);
-        
+        /*
         // Draw wind sparkles on waves
         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         for (let band = 0; band<6; band++)
@@ -512,6 +512,7 @@ class SailingGame {
                 ctx.fill();
             }
         }
+        */
     }
     
     drawBoat() {
@@ -542,15 +543,6 @@ class SailingGame {
         ctx.lineTo(-boat.length / 3, -boat.width / 3);
         ctx.closePath();
         ctx.fill();
-        
-        // Mast
-        const mastHeight = 60 * this.boat.sailHeight;
-        ctx.strokeStyle = '#654321';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(0, -mastHeight);
-        ctx.stroke();
         
         // Sail (triangle)
         if (this.boat.sailHeight > 0.1) {
