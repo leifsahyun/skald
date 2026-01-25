@@ -348,8 +348,8 @@ class SailingGame {
     applyRowingForce() {
         // Rowing provides a small forward force regardless of wind
         // This is independent of sail and wind
-        const rowingForce = 0.15;
-        const maxRowSpeed = 0.75;
+        const rowingForce = 0.05;
+        const maxRowSpeed = 0.3;
         this.boat.speed = Math.min(maxRowSpeed, this.boat.speed + rowingForce);
     }
     
