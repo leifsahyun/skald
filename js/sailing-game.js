@@ -42,12 +42,40 @@ class SailingGame {
         this.waveOffset = 0;
         this.time = 0;
         
+        // Coastline configuration
+        this.coastline = {
+            svgData: null,
+            scaleFactor: 1.5,  // Configurable scale factor for coastline
+            loaded: false
+        };
+        
         // Controls
         this.keys = {};
         this.mouseDown = { left: false, right: false };
         
         this.setupControls();
+        this.loadCoastline();
         this.gameLoop();
+    }
+    
+    loadCoastline() {
+        // Load SVG coastline data
+        fetch('map/chunks/e08f11e3-025d-43bf-b2be-a3633f877bbd.svg')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(svgText => {
+                const parser = new DOMParser();
+                const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+                this.coastline.svgData = svgDoc;
+                this.coastline.loaded = true;
+            })
+            .catch(error => {
+                console.error('Failed to load coastline SVG:', error);
+            });
     }
     
     setupControls() {
@@ -235,6 +263,9 @@ class SailingGame {
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, this.width, this.height);
         
+        // Draw coastline if loaded
+        this.drawCoastline();
+        
         // Draw animated waves
         ctx.save();
         for (let layer = 0; layer < 3; layer++) {
@@ -259,6 +290,37 @@ class SailingGame {
                 ctx.stroke();
             }
         }
+        ctx.restore();
+    }
+    
+    drawCoastline() {
+        if (!this.coastline.loaded || !this.coastline.svgData) {
+            return;
+        }
+        
+        const ctx = this.ctx;
+        const scale = this.coastline.scaleFactor;
+        
+        ctx.save();
+        ctx.scale(scale, scale);
+        
+        // Get all path elements from the SVG
+        const paths = this.coastline.svgData.querySelectorAll('path');
+        
+        // Draw each path as coastline
+        ctx.strokeStyle = '#654321';  // Dark brown color for coastline
+        ctx.lineWidth = 0.8 / scale;  // Adjust line width for scale
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        paths.forEach(pathElement => {
+            const pathData = pathElement.getAttribute('d');
+            if (pathData) {
+                const path2d = new Path2D(pathData);
+                ctx.stroke(path2d);
+            }
+        });
+        
         ctx.restore();
     }
     
