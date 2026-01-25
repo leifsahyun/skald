@@ -56,7 +56,9 @@ class SailingGame {
         
         // Controls
         this.keys = {};
+        this.keyPressTime = {}; // Track how long keys have been pressed
         this.mouseDown = { left: false, right: false };
+        this.buttonPressTime = {}; // Track how long buttons have been pressed
         
         this.setupControls();
         this.loadChunkIndex();
@@ -183,11 +185,17 @@ class SailingGame {
     setupControls() {
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
-            this.keys[e.key.toLowerCase()] = true;
+            const key = e.key.toLowerCase();
+            if (!this.keys[key]) {
+                this.keys[key] = true;
+                this.keyPressTime[key] = Date.now();
+            }
         });
         
         document.addEventListener('keyup', (e) => {
-            this.keys[e.key.toLowerCase()] = false;
+            const key = e.key.toLowerCase();
+            this.keys[key] = false;
+            delete this.keyPressTime[key];
         });
         
         // Mouse controls for sail angle
@@ -220,8 +228,11 @@ class SailingGame {
                 e.preventDefault();
                 if (actionType === 'key') {
                     this.keys[actionKey] = true;
+                    this.keyPressTime[actionKey] = Date.now();
                 } else if (actionType === 'mouse') {
                     this.mouseDown[actionKey] = true;
+                } else if (actionType === 'button') {
+                    this.buttonPressTime[actionKey] = Date.now();
                 }
             };
             
@@ -229,16 +240,22 @@ class SailingGame {
                 e.preventDefault();
                 if (actionType === 'key') {
                     this.keys[actionKey] = false;
+                    delete this.keyPressTime[actionKey];
                 } else if (actionType === 'mouse') {
                     this.mouseDown[actionKey] = false;
+                } else if (actionType === 'button') {
+                    delete this.buttonPressTime[actionKey];
                 }
             };
             
             const leaveAction = () => {
                 if (actionType === 'key') {
                     this.keys[actionKey] = false;
+                    delete this.keyPressTime[actionKey];
                 } else if (actionType === 'mouse') {
                     this.mouseDown[actionKey] = false;
+                } else if (actionType === 'button') {
+                    delete this.buttonPressTime[actionKey];
                 }
             };
             
@@ -257,9 +274,16 @@ class SailingGame {
         // Sail angle controls (equivalent to left/right mouse buttons)
         addButtonListeners('sailInBtn', 'mouse', 'left');
         addButtonListeners('sailOutBtn', 'mouse', 'right');
+        
+        // Forward button (new button for rowing/raising sail)
+        addButtonListeners('forwardBtn', 'button', 'forward');
     }
     
     updateControls() {
+        const now = Date.now();
+        const LONG_PRESS_DURATION = 5000; // 5 seconds
+        const SHORT_PRESS_DURATION = 2000; // 2 seconds for 's' key
+        
         // Rudder control (A/D keys)
         if (this.keys['a']) {
             this.boat.rudderAngle = Math.max(-30, this.boat.rudderAngle - 2);
@@ -270,12 +294,43 @@ class SailingGame {
             this.boat.rudderAngle *= 0.95;
         }
         
-        // Sail height (W/S keys)
+        // W key behavior: row if short press, raise sail if held for 5+ seconds
         if (this.keys['w']) {
-            this.boat.sailHeight = Math.min(1.0, this.boat.sailHeight + 0.02);
+            const pressDuration = now - this.keyPressTime['w'];
+            if (pressDuration >= LONG_PRESS_DURATION) {
+                // Held for 5+ seconds: raise sail to full height
+                this.boat.sailHeight = Math.min(1.0, this.boat.sailHeight + 0.02);
+            } else {
+                // Short press: row forward
+                this.applyRowingForce();
+            }
         }
+        
+        // S key behavior: take down sail completely after being held for a few seconds
         if (this.keys['s']) {
-            this.boat.sailHeight = Math.max(0.0, this.boat.sailHeight - 0.02);
+            const pressDuration = now - this.keyPressTime['s'];
+            if (pressDuration >= SHORT_PRESS_DURATION) {
+                // Held for 2+ seconds: drop sail completely
+                this.boat.sailHeight = Math.max(0.0, this.boat.sailHeight - 0.04);
+            }
+        }
+        
+        // Forward button behavior
+        if (this.buttonPressTime['forward'] !== undefined) {
+            const pressDuration = now - this.buttonPressTime['forward'];
+            if (pressDuration >= LONG_PRESS_DURATION) {
+                // Held for 5+ seconds
+                if (this.boat.sailHeight > 0.5) {
+                    // Sail is raised, lower it
+                    this.boat.sailHeight = Math.max(0.0, this.boat.sailHeight - 0.02);
+                } else {
+                    // Sail is lowered, raise it
+                    this.boat.sailHeight = Math.min(1.0, this.boat.sailHeight + 0.02);
+                }
+            } else {
+                // Short press: row forward
+                this.applyRowingForce();
+            }
         }
         
         // Sail angle (Mouse buttons)
@@ -285,6 +340,13 @@ class SailingGame {
         if (this.mouseDown.right) {
             this.boat.sailAngle = Math.min(0, this.boat.sailAngle + 2);
         }
+    }
+    
+    applyRowingForce() {
+        // Rowing provides a small forward force regardless of wind
+        // This is independent of sail and wind
+        const rowingForce = 0.15;
+        this.boat.speed = Math.min(10, this.boat.speed + rowingForce);
     }
     
     updateWind() {

@@ -252,6 +252,11 @@ footer {
     left: 20px;
 }
 
+.forward-controls {
+    bottom: 20px;
+    left: 150px;
+}
+
 .control-btn {
     width: 60px;
     height: 60px;
