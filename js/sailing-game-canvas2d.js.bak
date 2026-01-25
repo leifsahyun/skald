@@ -1,50 +1,54 @@
-// Sailing Game - 2D JavaScript sailing simulation using Pixi.js
+// Sailing Game - 2D JavaScript sailing simulation
 // Controls: A/D = rudder, W/S = raise/lower sail, Left/Right mouse = sail angle
 
 class SailingGame {
     constructor(canvas) {
         this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
         this.width = canvas.width;
         this.height = canvas.height;
 
         // Coastline configuration
         this.coastline = {
-            scaleFactor: 300.0,
-            chunks: new Map(),
-            chunkIndex: [],
-            chunkSize: 5,
-            loadDistance: 2,
-            indexLoaded: false,
-            graphics: new Map()
+            scaleFactor: 300.0,  // Configurable scale factor for coastline
+            chunks: new Map(),  // Map of chunk key -> {x, y, svgData, loaded}
+            chunkIndex: [],  // Array of {x, y, fileName} from index.csv
+            chunkSize: 5,  // Chunk size in world units
+            loadDistance: 2,  // Load chunks within this many chunks from boat position
+            indexLoaded: false
         };
         
         // Boat state
+        // Start boat at position corresponding to chunk (15, 145) in world coordinates
+        // World position = chunk position * scaleFactor
         this.boat = {
             x: 15 * this.coastline.scaleFactor,
             y: 145 * this.coastline.scaleFactor,
-            angle: 0,
+            angle: 0,           // Direction boat is facing (radians)
             speed: 0,
-            maxSpeed: 10,
-            rudderAngle: 0,
-            sailAngle: 0,
-            sailHeight: 1.0,
+            maxSpeed: 10,       // Maximum boat speed
+            rudderAngle: 0,     // Current rudder angle (-30 to 30 degrees)
+            sailAngle: 0,       // Sail angle relative to boat (-90 to 90 degrees)
+            sailHeight: 1.0,    // 0 to 1, how much sail is raised
             length: 40,
             width: 15
         };
         
         // Wind
         this.wind = {
-            angle: Math.random() * Math.PI * 2,
+            angle: Math.random() * Math.PI * 2,  // Wind direction (radians) - starts at random angle
             speed: 3.0,
-            changeRate: 0.0005,
-            targetAngle: null,
-            targetThreshold: 0.01,
-            rootPos: {
+            changeRate: 0.0005,  // How fast the wind angle changes (radians per frame)
+            targetAngle: null,   // Target angle for wind to shift towards
+            targetThreshold: 0.01,  // How close to target before picking new target (radians)
+            rootPos: // Transformation for sparkle particles
+            {
                 x: 0,
                 y: 0
             }
         };
         
+        // Initialize first target wind angle
         this.wind.targetAngle = Math.random() * Math.PI * 2;
         
         // Ocean animation
@@ -53,47 +57,9 @@ class SailingGame {
         
         // Controls
         this.keys = {};
-        this.keyPressTime = {};
+        this.keyPressTime = {}; // Track how long keys have been pressed
         this.mouseDown = { left: false, right: false };
-        this.buttonPressTime = {};
-        
-        // Initialize the game asynchronously
-        this.init();
-    }
-    
-    async init() {
-        // Initialize Pixi.js Application
-        this.app = new PIXI.Application();
-        await this.app.init({
-            canvas: this.canvas,
-            width: this.width,
-            height: this.height,
-            background: 0x1a5f7a,
-            antialias: true
-        });
-
-        // Create containers for different layers
-        this.oceanContainer = new PIXI.Container();
-        this.coastlineContainer = new PIXI.Container();
-        this.boatContainer = new PIXI.Container();
-        this.windContainer = new PIXI.Container();
-        
-        this.app.stage.addChild(this.oceanContainer);
-        this.app.stage.addChild(this.coastlineContainer);
-        this.app.stage.addChild(this.boatContainer);
-        this.app.stage.addChild(this.windContainer);
-        
-        // Create graphics objects
-        this.oceanGraphics = new PIXI.Graphics();
-        this.oceanContainer.addChild(this.oceanGraphics);
-        
-        this.boatGraphics = new PIXI.Graphics();
-        this.boatContainer.addChild(this.boatGraphics);
-        this.boatContainer.x = this.width / 2;
-        this.boatContainer.y = this.height / 2;
-        
-        this.windGraphics = new PIXI.Graphics();
-        this.windContainer.addChild(this.windGraphics);
+        this.buttonPressTime = {}; // Track how long buttons have been pressed
         
         this.setupControls();
         this.loadChunkIndex();
@@ -101,6 +67,7 @@ class SailingGame {
     }
     
     loadChunkIndex() {
+        // Load the chunk index CSV file
         fetch('map/chunks/index.csv')
             .then(response => {
                 if (!response.ok) {
@@ -130,6 +97,9 @@ class SailingGame {
     }
     
     getChunkCoordsFromWorldPos(worldX, worldY) {
+        // Convert world position to chunk coordinates
+        // World coords are scaled by scaleFactor from map coords
+        // Chunks are aligned to chunkSize boundaries in map coordinates
         const scale = this.coastline.scaleFactor;
         const chunkX = Math.floor(worldX / scale / this.coastline.chunkSize) * this.coastline.chunkSize;
         const chunkY = Math.floor(worldY / scale / this.coastline.chunkSize) * this.coastline.chunkSize;
@@ -139,15 +109,18 @@ class SailingGame {
     loadChunk(chunkX, chunkY) {
         const key = this.getChunkKey(chunkX, chunkY);
         
+        // Check if chunk is already loaded or loading
         if (this.coastline.chunks.has(key)) {
             return;
         }
         
+        // Find chunk in index
         const chunkData = this.coastline.chunkIndex.find(c => c.x === chunkX && c.y === chunkY);
         if (!chunkData) {
-            return;
+            return; // Chunk doesn't exist
         }
         
+        // Mark as loading
         this.coastline.chunks.set(key, {
             x: chunkX,
             y: chunkY,
@@ -155,6 +128,8 @@ class SailingGame {
             loaded: false
         });
         
+        // Load the chunk SVG
+        // CSV fileName includes 'chunks/' prefix, so we just prepend 'map/'
         fetch(`map/${chunkData.fileName}`)
             .then(response => {
                 if (!response.ok) {
@@ -182,8 +157,10 @@ class SailingGame {
             return;
         }
         
+        // Get current boat chunk position
         const { chunkX, chunkY } = this.getChunkCoordsFromWorldPos(this.boat.x, this.boat.y);
         
+        // Load chunks in a radius around the boat
         const loadDist = this.coastline.loadDistance;
         for (let dx = -loadDist; dx <= loadDist; dx++) {
             for (let dy = -loadDist; dy <= loadDist; dy++) {
@@ -193,6 +170,7 @@ class SailingGame {
             }
         }
         
+        // Unload chunks that are too far away
         const unloadDist = (loadDist + 1) * this.coastline.chunkSize;
         const chunksToRemove = [];
         for (const [key, chunk] of this.coastline.chunks.entries()) {
@@ -200,17 +178,13 @@ class SailingGame {
             const dy = Math.abs(chunk.y - chunkY);
             if (dx > unloadDist || dy > unloadDist) {
                 chunksToRemove.push(key);
-                const graphics = this.coastline.graphics.get(key);
-                if (graphics) {
-                    this.coastlineContainer.removeChild(graphics);
-                    this.coastline.graphics.delete(key);
-                }
             }
         }
         chunksToRemove.forEach(key => this.coastline.chunks.delete(key));
     }
     
     setupControls() {
+        // Keyboard controls
         document.addEventListener('keydown', (e) => {
             const key = e.key.toLowerCase();
             if (!this.keys[key]) {
@@ -225,6 +199,7 @@ class SailingGame {
             delete this.keyPressTime[key];
         });
         
+        // Mouse controls for sail angle
         this.canvas.addEventListener('mousedown', (e) => {
             if (e.button === 0) this.mouseDown.left = true;
             if (e.button === 2) this.mouseDown.right = true;
@@ -240,10 +215,12 @@ class SailingGame {
             e.preventDefault();
         });
         
+        // Mobile control buttons
         this.setupMobileControls();
     }
     
     setupMobileControls() {
+        // Helper function to add button event listeners
         const addButtonListeners = (buttonId, actionType, actionKey) => {
             const button = document.getElementById(buttonId);
             if (!button) return;
@@ -291,57 +268,75 @@ class SailingGame {
             button.addEventListener('mouseleave', leaveAction);
         };
         
+        // Rudder controls (equivalent to A/D keys)
         addButtonListeners('rudderLeftBtn', 'key', 'a');
         addButtonListeners('rudderRightBtn', 'key', 'd');
+        
+        // Sail angle controls (equivalent to left/right mouse buttons)
         addButtonListeners('sailInBtn', 'mouse', 'left');
         addButtonListeners('sailOutBtn', 'mouse', 'right');
+        
+        // Forward button (new button for rowing/raising sail)
         addButtonListeners('forwardBtn', 'button', 'forward');
     }
     
     updateControls() {
         const now = Date.now();
-        const LONG_PRESS_DURATION = 3000;
-        const SHORT_PRESS_DURATION = 3000;
-        const SAIL_THRESHOLD = 0.5;
+        const LONG_PRESS_DURATION = 3000; // 5 seconds
+        const SHORT_PRESS_DURATION = 3000; // 2 seconds for 's' key
+        const SAIL_THRESHOLD = 0.5; // Threshold to determine if sail is raised or lowered
         
+        // Rudder control (A/D keys)
         if (this.keys['a']) {
             this.boat.rudderAngle = Math.max(-30, this.boat.rudderAngle - 2);
         } else if (this.keys['d']) {
             this.boat.rudderAngle = Math.min(30, this.boat.rudderAngle + 2);
         } else {
+            // Return to center
             this.boat.rudderAngle *= 0.95;
         }
         
+        // W key behavior: row if short press, raise sail if held for 5+ seconds
         if (this.keys['w']) {
             const pressDuration = this.keyPressTime['w'] !== undefined ? now - this.keyPressTime['w'] : 0;
             if (pressDuration >= LONG_PRESS_DURATION) {
+                // Held for 5+ seconds: raise sail to full height
                 this.boat.sailHeight = 1.0;
             } else {
+                // Short press: row forward
                 this.applyRowingForce();
             }
         }
         
+        // S key behavior: take down sail completely after being held for a few seconds
         if (this.keys['s']) {
             const pressDuration = this.keyPressTime['s'] !== undefined ? now - this.keyPressTime['s'] : 0;
             if (pressDuration >= SHORT_PRESS_DURATION) {
+                // Held for 2+ seconds: drop sail quickly
                 this.boat.sailHeight = 0;
             }
         }
         
+        // Forward button behavior
         if (this.buttonPressTime['forward'] !== undefined) {
             const pressDuration = now - this.buttonPressTime['forward'];
             if (pressDuration >= LONG_PRESS_DURATION) {
+                // Held for 5+ seconds
                 if (this.boat.sailHeight > SAIL_THRESHOLD) {
+                    // Sail is raised, lower it
                     this.boat.sailHeight = 0;
                 } else {
+                    // Sail is lowered, raise it
                     this.boat.sailHeight = 1.0;
                 }
                 this.buttonPressTime['forward'] = now;
             } else {
+                // Short press: row forward
                 this.applyRowingForce();
             }
         }
         
+        // Sail angle (Mouse buttons)
         if (this.mouseDown.left) {
             this.boat.sailAngle = Math.max(-180, this.boat.sailAngle - 2);
         }
@@ -351,25 +346,34 @@ class SailingGame {
     }
     
     applyRowingForce() {
+        // Rowing provides a small forward force regardless of wind
+        // This is independent of sail and wind
         const rowingForce = 0.05;
         const maxRowSpeed = 0.3;
         this.boat.speed = Math.min(maxRowSpeed, this.boat.speed + rowingForce);
     }
     
     updateWind() {
+        // Gradually shift wind angle towards target angle
         let angleDiff = this.wind.targetAngle - this.wind.angle;
+        
+        // Normalize angle difference to -PI to PI (shortest path)
         angleDiff = ((angleDiff + Math.PI) % (2 * Math.PI)) - Math.PI;
         
+        // Move wind angle towards target
         if (Math.abs(angleDiff) > this.wind.targetThreshold) {
             this.wind.angle += Math.sign(angleDiff) * this.wind.changeRate;
         } else {
+            // Close enough to target, pick a new target angle
             this.wind.targetAngle = Math.random() * Math.PI * 2;
         }
         
+        // Normalize wind angle to 0 to 2PI
         this.wind.angle = ((this.wind.angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
     }
     
     updatePhysics() {
+        // Calculate wind effectiveness based on sail angle and position
         const boatAngle = this.boat.angle;
         const windAngle = this.wind.angle;
         const sailAngleRad = (this.boat.sailAngle * Math.PI) / 180;
@@ -378,75 +382,73 @@ class SailingGame {
         const pullOffset = 0.7;
         const windwardAllowance = 0.5;
         
+        // Relative wind angle to boat
         let relativeWindAngle = windAngle - boatAngle;
         
+        // Normalize to -PI to PI
         while (relativeWindAngle > Math.PI) relativeWindAngle -= 2 * Math.PI;
         while (relativeWindAngle < -Math.PI) relativeWindAngle += 2 * Math.PI;
         
+        // Calculate how aligned the sail is with the wind
         let sailEfficiency = Math.abs(Math.cos(relativeWindAngle - sailAngleRad)) * (Math.cos(relativeWindAngle) + windwardAllowance);
         
+        // Apply force based on sail height and efficiency
         const force = this.wind.speed * sailEfficiency * this.boat.sailHeight * 0.3;
         
+        // Update speed (with drag)
         this.boat.speed += force * 0.05;
-        this.boat.speed *= 0.98;
+        this.boat.speed *= 0.98; // Drag
         this.boat.speed = Math.min(this.boat.maxSpeed, this.boat.speed);
         
+        // Turn based on rudder
         const turnRate = (this.boat.rudderAngle / 30) * 0.02 * this.boat.speed;
         this.boat.angle += turnRate;
         
+        // Apply speed from waves
         let waveSpeed = Math.max(0, Math.sin(this.time) + 2 * Math.sin(this.time / 2)) - pullOffset;
         waveSpeed = waveMultiplier * (waveSpeed > 0 ? waveSpeed * tidalMultiplier : waveSpeed / tidalMultiplier);
         
+        // Move boat
         this.boat.x += Math.cos(this.boat.angle) * this.boat.speed + waveSpeed;
         this.boat.y += Math.sin(this.boat.angle) * this.boat.speed;
     }
     
     drawOcean() {
-        const g = this.oceanGraphics;
-        g.clear();
+        const ctx = this.ctx;
         
-        // Draw gradient background (using multiple rectangles)
-        const steps = 50;
-        for (let i = 0; i < steps; i++) {
-            const t = i / steps;
-            let r, gr, b;
-            if (t < 0.5) {
-                const localT = t * 2;
-                r = Math.floor(26 + (45 - 26) * localT);
-                gr = Math.floor(95 + (125 - 95) * localT);
-                b = Math.floor(122 + (165 - 122) * localT);
-            } else {
-                const localT = (t - 0.5) * 2;
-                r = Math.floor(45 + (26 - 45) * localT);
-                gr = Math.floor(125 + (79 - 125) * localT);
-                b = Math.floor(165 + (106 - 165) * localT);
-            }
-            const color = (r << 16) | (gr << 8) | b;
-            g.rect(0, i * this.height / steps, this.width, this.height / steps);
-            g.fill(color);
-        }
+        // Base ocean color
+        const gradient = ctx.createLinearGradient(0, 0, 0, this.height);
+        gradient.addColorStop(0, '#1a5f7a');
+        gradient.addColorStop(0.5, '#2d7da5');
+        gradient.addColorStop(1, '#1a4f6a');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, this.width, this.height);
         
         // Draw animated waves
+        ctx.save();
         for (let layer = 0; layer < 3; layer++) {
             const waveY = layer * 150;
             const waveSpeed = 0.5 + layer * 0.3;
             const waveHeight = 8 - layer * 2;
             const waveFreq = 0.015 + layer * 0.005;
-            const alpha = 0.15 - layer * 0.04;
+            
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.15 - layer * 0.04})`;
+            ctx.lineWidth = 2;
             
             for (let y = waveY; y < this.height; y += 40) {
-                const points = [];
+                ctx.beginPath();
                 for (let x = 0; x <= this.width; x += 5) {
                     const wave = Math.sin((x * waveFreq) + (this.waveOffset * waveSpeed) + (y * 0.01)) * waveHeight;
-                    points.push(x, y + wave);
+                    if (x === 0) {
+                        ctx.moveTo(x, y + wave);
+                    } else {
+                        ctx.lineTo(x, y + wave);
+                    }
                 }
-                g.moveTo(points[0], points[1]);
-                for (let i = 2; i < points.length; i += 2) {
-                    g.lineTo(points[i], points[i + 1]);
-                }
-                g.stroke({ width: 2, color: 0xffffff, alpha: alpha });
+                ctx.stroke();
             }
         }
+        ctx.restore();
     }
     
     drawCoastline() {
@@ -454,273 +456,226 @@ class SailingGame {
             return;
         }
         
+        const ctx = this.ctx;
         const scale = this.coastline.scaleFactor;
         
-        // Update coastline container position
-        this.coastlineContainer.x = this.width / 2 - this.boat.x;
-        this.coastlineContainer.y = this.height / 2 - this.boat.y;
-        this.coastlineContainer.scale.set(scale);
+        ctx.save();
+        // Center the view on the boat
+        ctx.translate(this.width / 2, this.height / 2);
+        ctx.translate(-this.boat.x, -this.boat.y);
+        ctx.scale(scale, scale);
         
         // Draw each loaded chunk
+        ctx.strokeStyle = '#654321';  // Dark brown color for coastline
+        ctx.lineWidth = 1.0 / scale;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
         for (const [key, chunk] of this.coastline.chunks.entries()) {
             if (!chunk.loaded || !chunk.svgData) {
                 continue;
             }
             
-            // Create graphics if not already created
-            if (!this.coastline.graphics.has(key)) {
-                const g = new PIXI.Graphics();
-                
-                const paths = chunk.svgData.querySelectorAll('path');
-                paths.forEach(pathElement => {
-                    const pathData = pathElement.getAttribute('d');
-                    if (pathData) {
-                        this.drawSVGPath(g, pathData, scale);
-                    }
-                });
-                
-                g.stroke({ width: 1.0 / scale, color: 0x654321 });
-                
-                this.coastlineContainer.addChild(g);
-                this.coastline.graphics.set(key, g);
-            }
-        }
-    }
-    
-    drawSVGPath(graphics, pathData, scale) {
-        // Simple SVG path parser for basic commands
-        const commands = pathData.match(/[MmLlHhVvCcSsQqTtAaZz][^MmLlHhVvCcSsQqTtAaZz]*/g);
-        if (!commands) return;
-        
-        let currentX = 0, currentY = 0;
-        
-        commands.forEach(cmd => {
-            const type = cmd[0];
-            const args = cmd.slice(1).trim().split(/[\s,]+/).map(parseFloat).filter(n => !isNaN(n));
+            // SVG paths contain absolute coordinates in map space, so no need to translate per-chunk
+            // Get all path elements from the SVG
+            const paths = chunk.svgData.querySelectorAll('path');
             
-            switch (type) {
-                case 'M':
-                    currentX = args[0];
-                    currentY = args[1];
-                    graphics.moveTo(currentX, currentY);
-                    break;
-                case 'm':
-                    currentX += args[0];
-                    currentY += args[1];
-                    graphics.moveTo(currentX, currentY);
-                    break;
-                case 'L':
-                    for (let i = 0; i < args.length; i += 2) {
-                        currentX = args[i];
-                        currentY = args[i + 1];
-                        graphics.lineTo(currentX, currentY);
-                    }
-                    break;
-                case 'l':
-                    for (let i = 0; i < args.length; i += 2) {
-                        currentX += args[i];
-                        currentY += args[i + 1];
-                        graphics.lineTo(currentX, currentY);
-                    }
-                    break;
-                case 'H':
-                    currentX = args[0];
-                    graphics.lineTo(currentX, currentY);
-                    break;
-                case 'h':
-                    currentX += args[0];
-                    graphics.lineTo(currentX, currentY);
-                    break;
-                case 'V':
-                    currentY = args[0];
-                    graphics.lineTo(currentX, currentY);
-                    break;
-                case 'v':
-                    currentY += args[0];
-                    graphics.lineTo(currentX, currentY);
-                    break;
-            }
-        });
+            // Draw each path as coastline
+            paths.forEach(pathElement => {
+                const pathData = pathElement.getAttribute('d');
+                if (pathData) {
+                    const path2d = new Path2D(pathData);
+                    ctx.stroke(path2d);
+                }
+            });
+        }
+        
+        ctx.restore();
     }
     
     drawWind() {
-        const g = this.windGraphics;
-        g.clear();
-        
+        const ctx = this.ctx;
         const centerX = 100;
         const centerY = 100;
         
         // Wind indicator background
-        g.circle(centerX, centerY, 50);
-        g.fill({ color: 0xffffff, alpha: 0.9 });
-        g.circle(centerX, centerY, 50);
-        g.stroke({ width: 2, color: 0x2c3e50 });
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.strokeStyle = '#2c3e50';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 50, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
         
-        // Create text for compass directions (using PIXI.Text)
-        if (!this.windText) {
-            this.windText = {
-                n: new PIXI.Text({ text: 'N', style: { fontFamily: 'Arial', fontSize: 14, fill: 0x2c3e50, align: 'center' } }),
-                s: new PIXI.Text({ text: 'S', style: { fontFamily: 'Arial', fontSize: 14, fill: 0x2c3e50, align: 'center' } }),
-                e: new PIXI.Text({ text: 'E', style: { fontFamily: 'Arial', fontSize: 14, fill: 0x2c3e50, align: 'center' } }),
-                w: new PIXI.Text({ text: 'W', style: { fontFamily: 'Arial', fontSize: 14, fill: 0x2c3e50, align: 'center' } }),
-                label: new PIXI.Text({ text: 'WIND', style: { fontFamily: 'Arial', fontSize: 12, fill: 0x2c3e50, align: 'center' } })
-            };
-            
-            this.windText.n.anchor.set(0.5);
-            this.windText.s.anchor.set(0.5);
-            this.windText.e.anchor.set(0.5);
-            this.windText.w.anchor.set(0.5);
-            this.windText.label.anchor.set(0.5);
-            
-            this.windContainer.addChild(this.windText.n);
-            this.windContainer.addChild(this.windText.s);
-            this.windContainer.addChild(this.windText.e);
-            this.windContainer.addChild(this.windText.w);
-            this.windContainer.addChild(this.windText.label);
-        }
-        
-        this.windText.n.x = centerX;
-        this.windText.n.y = centerY - 35;
-        this.windText.s.x = centerX;
-        this.windText.s.y = centerY + 35;
-        this.windText.e.x = centerX + 35;
-        this.windText.e.y = centerY;
-        this.windText.w.x = centerX - 35;
-        this.windText.w.y = centerY;
-        this.windText.label.x = centerX;
-        this.windText.label.y = centerY + 70;
+        // Compass directions
+        ctx.fillStyle = '#2c3e50';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('N', centerX, centerY - 35);
+        ctx.fillText('S', centerX, centerY + 35);
+        ctx.fillText('E', centerX + 35, centerY);
+        ctx.fillText('W', centerX - 35, centerY);
         
         // Wind arrow
         const arrowLength = 30;
         const arrowEndX = centerX + Math.cos(this.wind.angle) * arrowLength;
         const arrowEndY = centerY + Math.sin(this.wind.angle) * arrowLength;
         
-        g.moveTo(centerX, centerY);
-        g.lineTo(arrowEndX, arrowEndY);
-        g.stroke({ width: 3, color: 0xe74c3c });
+        ctx.strokeStyle = '#e74c3c';
+        ctx.fillStyle = '#e74c3c';
+        ctx.lineWidth = 3;
+        
+        // Arrow shaft
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(arrowEndX, arrowEndY);
+        ctx.stroke();
         
         // Arrow head
         const headAngle = this.wind.angle;
         const headSize = 10;
-        g.moveTo(arrowEndX, arrowEndY);
-        g.lineTo(
+        ctx.beginPath();
+        ctx.moveTo(arrowEndX, arrowEndY);
+        ctx.lineTo(
             arrowEndX - headSize * Math.cos(headAngle - Math.PI / 6),
             arrowEndY - headSize * Math.sin(headAngle - Math.PI / 6)
         );
-        g.lineTo(
+        ctx.lineTo(
             arrowEndX - headSize * Math.cos(headAngle + Math.PI / 6),
             arrowEndY - headSize * Math.sin(headAngle + Math.PI / 6)
         );
-        g.closePath();
-        g.fill(0xe74c3c);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Label
+        ctx.fillStyle = '#2c3e50';
+        ctx.font = '12px Arial';
+        ctx.fillText('WIND', centerX, centerY + 70);
+        /*
+        // Draw wind sparkles on waves
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        for (let band = 0; band<6; band++)
+        {
+            for (let i = 0; i < 30; i++) {
+                // Base position along wind line (distributes sparkles)
+                const posOffset = (i * 30 + 4000*band);
+                const baseX = (Math.cos(this.wind.angle) * posOffset) % this.width;
+                const baseY = (Math.sin(this.wind.angle) * posOffset) % this.height;
+                
+                // Movement along wind direction
+                this.wind.rootPos.x += 0.005 * Math.cos(this.wind.angle)
+                this.wind.rootPos.y += 0.005 * Math.sin(this.wind.angle)
+                
+                // Final position (wrap around canvas, add offset to ensure positive values before modulo)
+                const x = (baseX + this.wind.rootPos.x + this.width * 2) % this.width;
+                const y = (baseY + this.wind.rootPos.y + this.height * 2) % this.height;
+                
+                const size = Math.sin(this.time * 0.1 + i) * 1.5 + 2;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        */
     }
     
     drawBoat() {
-        const g = this.boatGraphics;
-        g.clear();
-        
+        const ctx = this.ctx;
         const boat = this.boat;
         
-        // Set boat rotation
-        this.boatContainer.rotation = boat.angle;
+        ctx.save();
+        ctx.translate(this.width/2, this.height/2);
+        ctx.rotate(boat.angle);
         
-        // Boat hull - filled
-        g.poly([
-            boat.length / 2, 0,
-            -boat.length / 2, boat.width / 2,
-            -boat.length / 2, -boat.width / 2
-        ]);
-        g.fill(0x8b4513);
-        
-        // Boat hull - stroke
-        g.poly([
-            boat.length / 2, 0,
-            -boat.length / 2, boat.width / 2,
-            -boat.length / 2, -boat.width / 2
-        ]);
-        g.stroke({ width: 2, color: 0x654321 });
+        // Boat hull (simple triangle shape)
+        ctx.fillStyle = '#8b4513';
+        ctx.strokeStyle = '#654321';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(boat.length / 2, 0);  // Bow (front)
+        ctx.lineTo(-boat.length / 2, boat.width / 2);  // Stern port (back left)
+        ctx.lineTo(-boat.length / 2, -boat.width / 2); // Stern starboard (back right)
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
         
         // Deck detail
-        g.poly([
-            boat.length / 4, 0,
-            -boat.length / 3, boat.width / 3,
-            -boat.length / 3, -boat.width / 3
-        ]);
-        g.fill(0xa0522d);
+        ctx.fillStyle = '#a0522d';
+        ctx.beginPath();
+        ctx.moveTo(boat.length / 4, 0);
+        ctx.lineTo(-boat.length / 3, boat.width / 3);
+        ctx.lineTo(-boat.length / 3, -boat.width / 3);
+        ctx.closePath();
+        ctx.fill();
         
-        // Sail
+        // Sail (triangle)
         const mastHeight = 60 * this.boat.sailHeight;
         if (this.boat.sailHeight > 0.1) {
-            const sailAngleRad = (boat.sailAngle * Math.PI) / 180;
-            const cos = Math.cos(sailAngleRad);
-            const sin = Math.sin(sailAngleRad);
+            ctx.save();
+            ctx.rotate((boat.sailAngle * Math.PI) / 180);
             
-            // Sail shadow
-            const shadow = [
-                {x: 2, y: -2},
-                {x: 32 * this.boat.sailHeight, y: -mastHeight * 0.7},
-                {x: 2, y: -mastHeight + 2}
-            ];
-            const shadowPoints = [];
-            shadow.forEach(p => {
-                const rx = p.x * cos - p.y * sin;
-                const ry = p.x * sin + p.y * cos;
-                shadowPoints.push(rx, ry);
-            });
-            g.poly(shadowPoints);
-            g.fill({ color: 0x000000, alpha: 0.2 });
+            // Sail shadow/depth
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.beginPath();
+            ctx.moveTo(2, -2);
+            ctx.lineTo(32 * this.boat.sailHeight, -mastHeight * 0.7);
+            ctx.lineTo(2, -mastHeight + 2);
+            ctx.closePath();
+            ctx.fill();
             
-            // Main sail - fill
-            const sail = [
-                {x: 0, y: 0},
-                {x: 30 * this.boat.sailHeight, y: -mastHeight * 0.7},
-                {x: 0, y: -mastHeight}
-            ];
-            const sailPoints = [];
-            sail.forEach(p => {
-                const rx = p.x * cos - p.y * sin;
-                const ry = p.x * sin + p.y * cos;
-                sailPoints.push(rx, ry);
-            });
-            g.poly(sailPoints);
-            g.fill(0xf0f0f0);
-            
-            // Main sail - stroke
-            g.poly(sailPoints);
-            g.stroke({ width: 1, color: 0x333333 });
+            // Main sail
+            ctx.fillStyle = '#f0f0f0';
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(30 * this.boat.sailHeight, -mastHeight * 0.7);
+            ctx.lineTo(0, -mastHeight);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
             
             // Sail details (seams)
-            const seam1 = {x: 0, y: -mastHeight * 0.3};
-            const seam2 = {x: 20 * this.boat.sailHeight, y: -mastHeight * 0.5};
-            const rx1 = seam1.x * cos - seam1.y * sin;
-            const ry1 = seam1.x * sin + seam1.y * cos;
-            const rx2 = seam2.x * cos - seam2.y * sin;
-            const ry2 = seam2.x * sin + seam2.y * cos;
-            g.moveTo(rx1, ry1);
-            g.lineTo(rx2, ry2);
-            g.stroke({ width: 1, color: 0x000000, alpha: 0.2 });
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, -mastHeight * 0.3);
+            ctx.lineTo(20 * this.boat.sailHeight, -mastHeight * 0.5);
+            ctx.stroke();
+            
+            ctx.restore();
         }
         
-        // Rudder indicator
-        const rudderAngleRad = -(boat.rudderAngle * Math.PI) / 180;
-        const rudderX = -boat.length / 2;
-        const rudderEndX = rudderX + (-8) * Math.cos(rudderAngleRad);
-        const rudderEndY = (-8) * Math.sin(rudderAngleRad);
-        g.moveTo(rudderX, 0);
-        g.lineTo(rudderEndX, rudderEndY);
-        g.stroke({ width: 2, color: 0x333333 });
+        // Rudder indicator (small line at stern)
+        ctx.save();
+        ctx.translate(-boat.length / 2, 0);
+        ctx.rotate(-(boat.rudderAngle * Math.PI) / 180);
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(-8, 0);
+        ctx.stroke();
+        ctx.restore();
         
-        // Wake effect
+        // Wake/trail effect when moving
         if (boat.speed > 0.5) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 1;
             for (let i = 0; i < 3; i++) {
-                g.moveTo(-boat.length / 2 - i * 5, boat.width / 4);
-                g.lineTo(-boat.length / 2 - i * 10, boat.width / 2 + i * 3);
-                g.stroke({ width: 1, color: 0xffffff, alpha: 0.4 });
-                g.moveTo(-boat.length / 2 - i * 5, -boat.width / 4);
-                g.lineTo(-boat.length / 2 - i * 10, -boat.width / 2 - i * 3);
-                g.stroke({ width: 1, color: 0xffffff, alpha: 0.4 });
+                ctx.beginPath();
+                ctx.moveTo(-boat.length / 2 - i * 5, boat.width / 4);
+                ctx.lineTo(-boat.length / 2 - i * 10, boat.width / 2 + i * 3);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(-boat.length / 2 - i * 5, -boat.width / 4);
+                ctx.lineTo(-boat.length / 2 - i * 10, -boat.width / 2 - i * 3);
+                ctx.stroke();
             }
         }
+        
+        ctx.restore();
     }
     
     updateUI() {
@@ -740,16 +695,13 @@ class SailingGame {
     }
     
     gameLoop() {
-        // Wait for app to be initialized
-        if (!this.app || !this.oceanGraphics) {
-            requestAnimationFrame(() => this.gameLoop());
-            return;
-        }
-        
         this.updateControls();
         this.updateWind();
         this.updatePhysics();
         this.updateChunks();
+        
+        // Clear canvas
+        this.ctx.clearRect(0, 0, this.width, this.height);
         
         // Draw
         this.drawOcean();
@@ -771,6 +723,6 @@ class SailingGame {
 document.addEventListener('DOMContentLoaded', function() {
     const canvas = document.getElementById('gameCanvas');
     if (canvas) {
-        window.game = new SailingGame(canvas);
+        new SailingGame(canvas);
     }
 });
