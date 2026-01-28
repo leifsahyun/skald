@@ -470,8 +470,15 @@ class SailingGame {
             // Create graphics if not already created
             if (!this.coastline.graphics.has(key)) {
                 const g = new PIXI.Graphics();
-
-                g.svg(chunk.svgData);
+                
+                const paths = chunk.svgData.querySelectorAll('path');
+                paths.forEach(pathElement => {
+                    const pathData = pathElement.getAttribute('d');
+                    if (pathData) {
+                        this.drawSVGPath(g, pathData, scale);
+                    }
+                });
+                
                 g.stroke({ width: 1.0 / scale, color: 0x654321 });
                 
                 this.coastlineContainer.addChild(g);
