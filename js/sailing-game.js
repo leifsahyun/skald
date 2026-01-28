@@ -155,12 +155,13 @@ class SailingGame {
             loaded: false
         });
 
-        const svgContext = await PIXI.Assets.load(`map/${chunkData.fileName}`, {
+        PIXI.Assets.load(`map/${chunkData.fileName}`, {
           parseAsGraphicsContext: true, // If false, it returns a texture instead.
+        }).then((svgContext) => {
+            const chunk = this.coastline.chunks.get(key);
+            chunk.svgData = svgContext;
+            chunk.loaded = true;
         });
-        const chunk = this.coastline.chunks.get(key);
-        chunk.svgData = svgContext;
-        chunk.loaded = true;
     }
     
     updateChunks() {
