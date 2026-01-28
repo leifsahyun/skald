@@ -154,27 +154,13 @@ class SailingGame {
             svgData: null,
             loaded: false
         });
-        
-        fetch(`map/${chunkData.fileName}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.text();
-            })
-            .then(svgText => {
-                const parser = new DOMParser();
-                const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
-                const chunk = this.coastline.chunks.get(key);
-                if (chunk) {
-                    chunk.svgData = svgDoc;
-                    chunk.loaded = true;
-                }
-            })
-            .catch(error => {
-                console.error(`Failed to load chunk ${key} from ${chunkData.fileName}:`, error);
-                this.coastline.chunks.delete(key);
-            });
+
+        const svgContext = await PIXI.Assets.load(`map/${chunkData.fileName}`, {
+          parseAsGraphicsContext: true, // If false, it returns a texture instead.
+        });
+        const chunk = this.coastline.chunks.get(key);
+        chunk.svgData = svgContext;
+        chunk.loaded = true;
     }
     
     updateChunks() {
@@ -469,15 +455,7 @@ class SailingGame {
             
             // Create graphics if not already created
             if (!this.coastline.graphics.has(key)) {
-                const g = new PIXI.Graphics();
-                
-                const paths = chunk.svgData.querySelectorAll('path');
-                paths.forEach(pathElement => {
-                    const pathData = pathElement.getAttribute('d');
-                    if (pathData) {
-                        this.drawSVGPath(g, pathData, scale);
-                    }
-                });
+                const g = new PIXI.Graphics(chunk.svgData);
                 
                 g.stroke({ width: 1.0 / scale, color: 0x654321 });
                 
