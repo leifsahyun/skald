@@ -471,7 +471,7 @@ class SailingGame {
             if (!this.coastline.graphics.has(key)) {
                 const g = new PIXI.Graphics();
 
-                g.svg(pathData);
+                g.svg(chunk.svgData);
                 g.stroke({ width: 1.0 / scale, color: 0x654321 });
                 
                 this.coastlineContainer.addChild(g);
