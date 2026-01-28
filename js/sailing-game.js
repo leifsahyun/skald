@@ -470,7 +470,7 @@ class SailingGame {
                 const g = new PIXI.Graphics();
 
                 g.svg(chunk.svgData);
-                g.stroke({ width: 1.0 / scale, color: 0x654321 });
+                g.stroke({ color: 0x654321, pixelLine: true });
                 
                 this.coastlineContainer.addChild(g);
                 this.coastline.graphics.set(key, g);
