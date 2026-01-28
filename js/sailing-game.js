@@ -471,7 +471,7 @@ class SailingGame {
 
                 g.svg(chunk.svgData);
                 g.stroke({ color: 0x654321, pixelLine: true });
-                g.fill.fill({color: 0x00ff00, alpha: 0});
+                g.fill({color: 0x00ff00, alpha: 0});
                 
                 this.coastlineContainer.addChild(g);
                 this.coastline.graphics.set(key, g);
