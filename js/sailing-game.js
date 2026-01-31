@@ -96,7 +96,11 @@ class SailingGame {
         this.windGraphics = new PIXI.Graphics();
         this.windContainer.addChild(this.windGraphics);
         
+        // Cache reference to text panel element
+        this.textPanel = document.getElementById('textPanel');
+        
         this.setupControls();
+        this.createCircularButton();
         this.loadChunkIndex();
         this.gameLoop();
     }
@@ -292,6 +296,62 @@ class SailingGame {
         addButtonListeners('sailBtn', 'button', 'sail');
     }
     
+    createCircularButton() {
+        // Button position in world coordinates (near the boat starting position)
+        this.buttonWorldX = this.boat.x + 150;
+        this.buttonWorldY = this.boat.y - 100;
+        
+        // Create the circular button graphics directly in coastlineContainer
+        this.buttonGraphics = new PIXI.Graphics();
+        
+        // Helper function to draw button with specified colors
+        const drawButton = (outerColor, middleColor, innerColor) => {
+            this.buttonGraphics.clear();
+            // Outer white ring
+            this.buttonGraphics.circle(0, 0, 30);
+            this.buttonGraphics.fill(outerColor);
+            // Gap (transparent area) - draw as part of the background
+            this.buttonGraphics.circle(0, 0, 25);
+            this.buttonGraphics.fill(0x1a5f7a); // Same as ocean background to create gap effect
+            // White middle circle
+            this.buttonGraphics.circle(0, 0, 20);
+            this.buttonGraphics.fill(middleColor);
+            // Black inner circle
+            this.buttonGraphics.circle(0, 0, 12);
+            this.buttonGraphics.fill(innerColor);
+        };
+        
+        // Draw initial button state
+        drawButton(0xffffff, 0xffffff, 0x000000);
+        
+        // Add button directly to coastlineContainer
+        this.coastlineContainer.addChild(this.buttonGraphics);
+        
+        // Make button interactive
+        this.buttonGraphics.eventMode = 'static';
+        this.buttonGraphics.cursor = 'pointer';
+        
+        // Add hover effect
+        this.buttonGraphics.on('pointerover', () => {
+            drawButton(0xe0e0e0, 0xe0e0e0, 0x333333);
+        });
+        
+        this.buttonGraphics.on('pointerout', () => {
+            drawButton(0xffffff, 0xffffff, 0x000000);
+        });
+        
+        // Add click handler
+        this.buttonGraphics.on('pointerdown', () => {
+            this.toggleTextPanel();
+        });
+    }
+    
+    toggleTextPanel() {
+        if (this.textPanel) {
+            this.textPanel.classList.toggle('open');
+        }
+    }
+    
     updateControls() {
         const now = Date.now();
         const LONG_PRESS_DURATION = 3000;
@@ -468,6 +528,12 @@ class SailingGame {
         this.coastlineContainer.x = this.width / 2;
         this.coastlineContainer.y = this.height / 2;
         this.coastlineContainer.scale.set(scale);
+        
+        // Update button position (part of coastlineContainer, so it moves with the map)
+        if (this.buttonGraphics) {
+            this.buttonGraphics.x = this.buttonWorldX - this.boat.x;
+            this.buttonGraphics.y = this.buttonWorldY - this.boat.y;
+        }
         
         // Draw each loaded chunk
         for (const [key, chunk] of this.coastline.chunks.entries()) {
