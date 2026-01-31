@@ -356,11 +356,12 @@ class SailingGame {
     
     applyRowingForce(forwards = true) {
         const rowingForce = 0.05;
-        const maxRowSpeed = 0.75;
+        const maxForwardsRowSpeed = 0.6;
+        const maxBackwardsRowSpeed = -0.2;
         if (forwards)
-            this.boat.speed = Math.min(maxRowSpeed, this.boat.speed + rowingForce);
+            this.boat.speed = Math.min(maxForwardsRowSpeed, this.boat.speed + rowingForce);
         else
-            this.boat.speed = Math.max(-maxRowSpeed, this.boat.speed - rowingForce);
+            this.boat.speed = Math.max(maxBackwardsRowSpeed, this.boat.speed - rowingForce);
     }
     
     updateWind() {
@@ -661,7 +662,7 @@ class SailingGame {
         g.stroke({ width: 2, color: 0x333333 });
         
         // Wake effect
-        if (boat.speed > 0.5) {
+        if (boat.speed > 0.6) {
             for (let i = 0; i < 3; i++) {
                 g.moveTo(-boat.length / 2 - i * 5, boat.width / 4);
                 g.lineTo(-boat.length / 2 - i * 10, boat.width / 2 + i * 3);
