@@ -462,17 +462,20 @@ class SailingGame {
             
             // Create graphics if not already created
             if (!this.coastline.graphics.has(key)) {
+                const chunkContainer = new PIXI.Container();
                 const g = new PIXI.Graphics();
 
                 g.texture(chunk.texture);
                 
-                this.coastlineContainer.addChild(g);
-                this.coastline.graphics.set(key, g);
+                chunkContainer.addChild(g);
+                this.coastlineContainer.addChild(chunkContainer);
+                this.coastline.graphics.set(key, chunkContainer);
             }
             
             const chunkX = chunk.x * this.coastline.chunkPixelSize / this.coastline.chunkSize;
             const chunkY = chunk.y * this.coastline.chunkPixelSize / this.coastline.chunkSize;
-            this.coastline.graphics.get(key).setTransform((new PIXI.Matrix()).translate(chunkX - this.boat.x, chunkY - this.boat.y));
+            this.coastline.graphics.get(key).x = chunkX - this.boat.x;
+            this.coastline.graphics.get(key).y = chunkY - this.boat.y;
         }
     }
     
