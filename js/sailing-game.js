@@ -9,10 +9,10 @@ class SailingGame {
 
         // Coastline configuration
         this.coastline = {
-            scaleFactor: 10.0,
+            scaleFactor: 1.0,
             chunks: new Map(),
             chunkIndex: [],
-            chunkSize: 5,
+            chunkSize: 1800,
             loadDistance: 2,
             indexLoaded: false,
             graphics: new Map()
