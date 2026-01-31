@@ -1,5 +1,5 @@
 // Sailing Game - 2D JavaScript sailing simulation using Pixi.js
-// Controls: A/D = rudder, W/S = raise/lower sail, Left/Right mouse = sail angle
+// Controls: A/D = rudder, W/S = row forwards/backwards, Q = raise/lower sail, Left/Right mouse = sail angle
 
 class SailingGame {
     constructor(canvas) {
@@ -25,10 +25,10 @@ class SailingGame {
             y: -59.3 * this.coastline.chunkPixelSize / this.coastline.chunkSize,
             angle: 0,
             speed: 0,
-            maxSpeed: 10,
+            maxSpeed: 15,
             rudderAngle: 0,
             sailAngle: 0,
-            sailHeight: 1.0,
+            sailHeight: 0,
             length: 40,
             width: 15
         };
@@ -294,7 +294,7 @@ class SailingGame {
     updateControls() {
         const now = Date.now();
         const LONG_PRESS_DURATION = 3000;
-        const SHORT_PRESS_DURATION = 3000;
+        const SHORT_PRESS_DURATION = 1000;
         const SAIL_THRESHOLD = 0.5;
         
         if (this.keys['a']) {
@@ -306,18 +306,26 @@ class SailingGame {
         }
         
         if (this.keys['w']) {
-            const pressDuration = this.keyPressTime['w'] !== undefined ? now - this.keyPressTime['w'] : 0;
-            if (pressDuration >= LONG_PRESS_DURATION) {
-                this.boat.sailHeight = 1.0;
-            } else {
-                this.applyRowingForce();
-            }
+            this.applyRowingForce();
         }
         
         if (this.keys['s']) {
+            this.applyRowingForce(false);
             const pressDuration = this.keyPressTime['s'] !== undefined ? now - this.keyPressTime['s'] : 0;
             if (pressDuration >= SHORT_PRESS_DURATION) {
                 this.boat.sailHeight = 0;
+            }
+        }
+
+        if (this.keys['q']) {
+            const pressDuration = this.keyPressTime['w'] !== undefined ? now - this.keyPressTime['q'] : 0;
+            if (pressDuration >= SHORT_PRESS_DURATION) {
+            if (this.boat.sailHeight > SAIL_THRESHOLD) {
+                        this.boat.sailHeight = 0;
+                    } else {
+                        this.boat.sailHeight = 1.0;
+                    }
+                }
             }
         }
         
@@ -343,10 +351,13 @@ class SailingGame {
         }
     }
     
-    applyRowingForce() {
+    applyRowingForce(forwards = true) {
         const rowingForce = 0.05;
-        const maxRowSpeed = 0.3;
-        this.boat.speed = Math.min(maxRowSpeed, this.boat.speed + rowingForce);
+        const maxRowSpeed = 0.75;
+        if (forwards)
+            this.boat.speed = Math.min(maxRowSpeed, this.boat.speed + rowingForce);
+        else
+            this.boat.speed = Math.max(-maxRowSpeed, this.boat.speed - rowingForce);
     }
     
     updateWind() {
@@ -477,62 +488,6 @@ class SailingGame {
             this.coastline.graphics.get(key).x = chunkX - this.boat.x;
             this.coastline.graphics.get(key).y = chunkY - this.boat.y;
         }
-    }
-    
-    drawSVGPath(graphics, pathData, scale) {
-        // Simple SVG path parser for basic commands
-        const commands = pathData.match(/[MmLlHhVvCcSsQqTtAaZz][^MmLlHhVvCcSsQqTtAaZz]*/g);
-        if (!commands) return;
-        
-        let currentX = 0, currentY = 0;
-        
-        commands.forEach(cmd => {
-            const type = cmd[0];
-            const args = cmd.slice(1).trim().split(/[\s,]+/).map(parseFloat).filter(n => !isNaN(n));
-            
-            switch (type) {
-                case 'M':
-                    currentX = args[0];
-                    currentY = args[1];
-                    graphics.moveTo(currentX, currentY);
-                    break;
-                case 'm':
-                    currentX += args[0];
-                    currentY += args[1];
-                    graphics.moveTo(currentX, currentY);
-                    break;
-                case 'L':
-                    for (let i = 0; i < args.length; i += 2) {
-                        currentX = args[i];
-                        currentY = args[i + 1];
-                        graphics.lineTo(currentX, currentY);
-                    }
-                    break;
-                case 'l':
-                    for (let i = 0; i < args.length; i += 2) {
-                        currentX += args[i];
-                        currentY += args[i + 1];
-                        graphics.lineTo(currentX, currentY);
-                    }
-                    break;
-                case 'H':
-                    currentX = args[0];
-                    graphics.lineTo(currentX, currentY);
-                    break;
-                case 'h':
-                    currentX += args[0];
-                    graphics.lineTo(currentX, currentY);
-                    break;
-                case 'V':
-                    currentY = args[0];
-                    graphics.lineTo(currentX, currentY);
-                    break;
-                case 'v':
-                    currentY += args[0];
-                    graphics.lineTo(currentX, currentY);
-                    break;
-            }
-        });
     }
     
     drawWind() {
