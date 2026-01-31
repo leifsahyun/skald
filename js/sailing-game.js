@@ -450,8 +450,8 @@ class SailingGame {
         const scale = this.coastline.scaleFactor;
         
         // Update coastline container position
-        this.coastlineContainer.x = this.width / 2 - this.boat.x;
-        this.coastlineContainer.y = this.height / 2 - this.boat.y;
+        this.coastlineContainer.x = this.width / 2;
+        this.coastlineContainer.y = this.height / 2;
         this.coastlineContainer.scale.set(scale);
         
         // Draw each loaded chunk
@@ -463,7 +463,10 @@ class SailingGame {
             // Create graphics if not already created
             if (!this.coastline.graphics.has(key)) {
                 const g = new PIXI.Graphics();
-
+                const chunkX = chunk.x * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+                const chunkY = chunk.y * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+                
+                g.translateTransform(chunkX - this.boat.x, chunkY - this.boat.y);
                 g.texture(chunk.texture);
                 
                 this.coastlineContainer.addChild(g);
