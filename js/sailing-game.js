@@ -20,8 +20,8 @@ class SailingGame {
         
         // Boat state
         this.boat = {
-            x: 15 * this.coastline.scaleFactor,
-            y: 145 * this.coastline.scaleFactor,
+            x: 1 * this.coastline.scaleFactor,
+            y: 1 * this.coastline.scaleFactor,
             angle: 0,
             speed: 0,
             maxSpeed: 10,
@@ -151,21 +151,21 @@ class SailingGame {
         this.coastline.chunks.set(key, {
             x: chunkX,
             y: chunkY,
-            svgData: null,
+            texture: null,
             loaded: false
         });
         
-        fetch(`map/${chunkData.fileName}`)
+        Assets.load(`map/${chunkData.fileName}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.text();
             })
-            .then(svgText => {
+            .then(texture => {
                 const chunk = this.coastline.chunks.get(key);
                 if (chunk) {
-                    chunk.svgData = svgText;
+                    chunk.texture = texture;
                     chunk.loaded = true;
                 }
             })
@@ -461,7 +461,7 @@ class SailingGame {
         
         // Draw each loaded chunk
         for (const [key, chunk] of this.coastline.chunks.entries()) {
-            if (!chunk.loaded || !chunk.svgData) {
+            if (!chunk.loaded || !chunk.texture) {
                 continue;
             }
             
@@ -469,9 +469,7 @@ class SailingGame {
             if (!this.coastline.graphics.has(key)) {
                 const g = new PIXI.Graphics();
 
-                g.svg(chunk.svgData);
-                g.stroke({ color: 0x654321, pixelLine: true });
-                g.fill({color: 0x00ff00, alpha: 0});
+                g.texture(chunk.texture);
                 
                 this.coastlineContainer.addChild(g);
                 this.coastline.graphics.set(key, g);
