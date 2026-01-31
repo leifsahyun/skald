@@ -289,6 +289,7 @@ class SailingGame {
         addButtonListeners('sailInBtn', 'mouse', 'left');
         addButtonListeners('sailOutBtn', 'mouse', 'right');
         addButtonListeners('forwardBtn', 'button', 'forward');
+        addButtonListeners('sailBtn', 'button', 'sail');
     }
     
     updateControls() {
@@ -329,18 +330,20 @@ class SailingGame {
             }
         }
         
-        if (this.buttonPressTime['forward'] !== undefined) {
-            const pressDuration = now - this.buttonPressTime['forward'];
-            if (pressDuration >= LONG_PRESS_DURATION) {
+        if (this.buttonPressTime['sail'] !== undefined) {
+            const pressDuration = now - this.buttonPressTime['sail'];
+            if (pressDuration >= SHORT_PRESS_DURATION) {
                 if (this.boat.sailHeight > SAIL_THRESHOLD) {
                     this.boat.sailHeight = 0;
                 } else {
                     this.boat.sailHeight = 1.0;
                 }
-                this.buttonPressTime['forward'] = now;
-            } else {
-                this.applyRowingForce();
+                this.buttonPressTime['sail'] = now;
             }
+        }
+
+        if (this.buttonPressTime['forward'] !== undefined) {
+            this.applyRowingForce();
         }
         
         if (this.mouseDown.left) {
