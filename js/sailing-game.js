@@ -22,7 +22,7 @@ class SailingGame {
         // Boat state
         this.boat = {
             x: 5.6 * this.coastline.chunkPixelSize / this.coastline.chunkSize,
-            y: 59.3 * this.coastline.chunkPixelSize / this.coastline.chunkSize,
+            y: -59.3 * this.coastline.chunkPixelSize / this.coastline.chunkSize,
             angle: 0,
             speed: 0,
             maxSpeed: 10,
@@ -133,7 +133,7 @@ class SailingGame {
     getChunkCoordsFromWorldPos(worldX, worldY) {
         const scale = this.coastline.scaleFactor;
         const chunkX = Math.floor(worldX / this.coastline.chunkPixelSize) * this.coastline.chunkSize;
-        const chunkY = Math.floor(worldY / this.coastline.chunkPixelSize) * this.coastline.chunkSize;
+        const chunkY = -Math.floor(worldY / this.coastline.chunkPixelSize) * this.coastline.chunkSize;
         return { chunkX, chunkY };
     }
     
