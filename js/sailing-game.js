@@ -325,6 +325,7 @@ class SailingGame {
                 } else {
                     this.boat.sailHeight = 1.0;
                 }
+                this.keyPressTime['q'] = now;
             }
         }
         
