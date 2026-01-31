@@ -525,15 +525,9 @@ class SailingGame {
         const scale = this.coastline.scaleFactor;
         
         // Update coastline container position
-        this.coastlineContainer.x = this.width / 2;
-        this.coastlineContainer.y = this.height / 2;
+        this.coastlineContainer.x = this.width / 2 - this.boat.x;
+        this.coastlineContainer.y = this.height / 2 - this.boat.y;
         this.coastlineContainer.scale.set(scale);
-        
-        // Update button position (part of coastlineContainer, so it moves with the map)
-        if (this.buttonGraphics) {
-            this.buttonGraphics.x = this.buttonWorldX - this.boat.x;
-            this.buttonGraphics.y = this.buttonWorldY - this.boat.y;
-        }
         
         // Draw each loaded chunk
         for (const [key, chunk] of this.coastline.chunks.entries()) {
@@ -543,20 +537,16 @@ class SailingGame {
             
             // Create graphics if not already created
             if (!this.coastline.graphics.has(key)) {
-                const chunkContainer = new PIXI.Container();
                 const g = new PIXI.Graphics();
 
+                const chunkX = chunk.x * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+                const chunkY = -chunk.y * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+                g.translateTransform(chunkX, chunkY);
                 g.texture(chunk.texture);
                 
-                chunkContainer.addChild(g);
-                this.coastlineContainer.addChild(chunkContainer);
-                this.coastline.graphics.set(key, chunkContainer);
+                this.coastlineContainer.addChild(g);
+                this.coastline.graphics.set(key, g);
             }
-            
-            const chunkX = chunk.x * this.coastline.chunkPixelSize / this.coastline.chunkSize;
-            const chunkY = -chunk.y * this.coastline.chunkPixelSize / this.coastline.chunkSize;
-            this.coastline.graphics.get(key).x = chunkX - this.boat.x;
-            this.coastline.graphics.get(key).y = chunkY - this.boat.y;
         }
     }
     
