@@ -20,7 +20,7 @@ class SailingGame {
         
         // Boat state
         this.boat = {
-            x: 450,
+            x: 750,
             y: 1350,
             angle: 0,
             speed: 0,
