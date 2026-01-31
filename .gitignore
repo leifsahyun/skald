@@ -31,5 +31,10 @@ temp/
 node_modules/
 package-lock.json
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
 # Keep libs directory
 !js/libs/
