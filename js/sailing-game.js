@@ -308,21 +308,25 @@ class SailingGame {
         // Create the circular button graphics
         const buttonGraphics = new PIXI.Graphics();
         
-        // Outer white ring
-        buttonGraphics.circle(0, 0, 30);
-        buttonGraphics.fill(0xffffff);
+        // Helper function to draw button with specified colors
+        const drawButton = (outerColor, middleColor, innerColor) => {
+            buttonGraphics.clear();
+            // Outer white ring
+            buttonGraphics.circle(0, 0, 30);
+            buttonGraphics.fill(outerColor);
+            // Gap (transparent area) - draw as part of the background
+            buttonGraphics.circle(0, 0, 25);
+            buttonGraphics.fill(0x1a5f7a); // Same as ocean background to create gap effect
+            // White middle circle
+            buttonGraphics.circle(0, 0, 20);
+            buttonGraphics.fill(middleColor);
+            // Black inner circle
+            buttonGraphics.circle(0, 0, 12);
+            buttonGraphics.fill(innerColor);
+        };
         
-        // Gap (transparent area) - draw as part of the background
-        buttonGraphics.circle(0, 0, 25);
-        buttonGraphics.fill(0x1a5f7a); // Same as ocean background to create gap effect
-        
-        // White middle circle
-        buttonGraphics.circle(0, 0, 20);
-        buttonGraphics.fill(0xffffff);
-        
-        // Black inner circle
-        buttonGraphics.circle(0, 0, 12);
-        buttonGraphics.fill(0x000000);
+        // Draw initial button state
+        drawButton(0xffffff, 0xffffff, 0x000000);
         
         this.buttonContainer.addChild(buttonGraphics);
         
@@ -332,35 +336,11 @@ class SailingGame {
         
         // Add hover effect
         this.buttonContainer.on('pointerover', () => {
-            buttonGraphics.clear();
-            // Outer white ring
-            buttonGraphics.circle(0, 0, 30);
-            buttonGraphics.fill(0xe0e0e0);
-            // Gap
-            buttonGraphics.circle(0, 0, 25);
-            buttonGraphics.fill(0x1a5f7a);
-            // White middle circle
-            buttonGraphics.circle(0, 0, 20);
-            buttonGraphics.fill(0xe0e0e0);
-            // Black inner circle
-            buttonGraphics.circle(0, 0, 12);
-            buttonGraphics.fill(0x333333);
+            drawButton(0xe0e0e0, 0xe0e0e0, 0x333333);
         });
         
         this.buttonContainer.on('pointerout', () => {
-            buttonGraphics.clear();
-            // Outer white ring
-            buttonGraphics.circle(0, 0, 30);
-            buttonGraphics.fill(0xffffff);
-            // Gap
-            buttonGraphics.circle(0, 0, 25);
-            buttonGraphics.fill(0x1a5f7a);
-            // White middle circle
-            buttonGraphics.circle(0, 0, 20);
-            buttonGraphics.fill(0xffffff);
-            // Black inner circle
-            buttonGraphics.circle(0, 0, 12);
-            buttonGraphics.fill(0x000000);
+            drawButton(0xffffff, 0xffffff, 0x000000);
         });
         
         // Add click handler
@@ -373,14 +353,17 @@ class SailingGame {
         // Panel is hidden initially
         this.textPanelVisible = false;
         
+        // Panel width constant for consistency
+        const PANEL_WIDTH = 400;
+        
         // Create text panel in HTML (easier to style and animate)
         const panel = document.createElement('div');
         panel.id = 'textPanel';
         panel.style.cssText = `
             position: fixed;
-            right: -400px;
+            right: -${PANEL_WIDTH}px;
             top: 0;
-            width: 400px;
+            width: ${PANEL_WIDTH}px;
             height: 100vh;
             background-color: rgba(44, 62, 80, 0.95);
             color: white;
@@ -406,6 +389,7 @@ class SailingGame {
         
         document.body.appendChild(panel);
         this.textPanel = panel;
+        this.textPanelWidth = PANEL_WIDTH;
     }
     
     toggleTextPanel() {
@@ -414,7 +398,7 @@ class SailingGame {
         if (this.textPanelVisible) {
             this.textPanel.style.right = '0px';
         } else {
-            this.textPanel.style.right = '-400px';
+            this.textPanel.style.right = `-${this.textPanelWidth}px`;
         }
     }
     
