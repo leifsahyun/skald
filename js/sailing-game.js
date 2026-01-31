@@ -78,11 +78,13 @@ class SailingGame {
         this.coastlineContainer = new PIXI.Container();
         this.boatContainer = new PIXI.Container();
         this.windContainer = new PIXI.Container();
+        this.uiContainer = new PIXI.Container();
         
         this.app.stage.addChild(this.oceanContainer);
         this.app.stage.addChild(this.coastlineContainer);
         this.app.stage.addChild(this.boatContainer);
         this.app.stage.addChild(this.windContainer);
+        this.app.stage.addChild(this.uiContainer);
         
         // Create graphics objects
         this.oceanGraphics = new PIXI.Graphics();
@@ -97,6 +99,8 @@ class SailingGame {
         this.windContainer.addChild(this.windGraphics);
         
         this.setupControls();
+        this.createCircularButton();
+        this.createTextPanel();
         this.loadChunkIndex();
         this.gameLoop();
     }
@@ -290,6 +294,136 @@ class SailingGame {
         addButtonListeners('sailOutBtn', 'mouse', 'right');
         addButtonListeners('forwardBtn', 'button', 'forward');
         addButtonListeners('sailBtn', 'button', 'sail');
+    }
+    
+    createCircularButton() {
+        // Create a container for the button that will move with the map
+        this.buttonContainer = new PIXI.Container();
+        this.coastlineContainer.addChild(this.buttonContainer);
+        
+        // Button position relative to boat starting position (near the boat)
+        this.buttonWorldX = this.boat.x + 150;
+        this.buttonWorldY = this.boat.y - 100;
+        
+        // Create the circular button graphics
+        const buttonGraphics = new PIXI.Graphics();
+        
+        // Outer white ring
+        buttonGraphics.circle(0, 0, 30);
+        buttonGraphics.fill(0xffffff);
+        
+        // Gap (transparent area) - draw as part of the background
+        buttonGraphics.circle(0, 0, 25);
+        buttonGraphics.fill(0x1a5f7a); // Same as ocean background to create gap effect
+        
+        // White middle circle
+        buttonGraphics.circle(0, 0, 20);
+        buttonGraphics.fill(0xffffff);
+        
+        // Black inner circle
+        buttonGraphics.circle(0, 0, 12);
+        buttonGraphics.fill(0x000000);
+        
+        this.buttonContainer.addChild(buttonGraphics);
+        
+        // Make button interactive
+        this.buttonContainer.eventMode = 'static';
+        this.buttonContainer.cursor = 'pointer';
+        
+        // Add hover effect
+        this.buttonContainer.on('pointerover', () => {
+            buttonGraphics.clear();
+            // Outer white ring
+            buttonGraphics.circle(0, 0, 30);
+            buttonGraphics.fill(0xe0e0e0);
+            // Gap
+            buttonGraphics.circle(0, 0, 25);
+            buttonGraphics.fill(0x1a5f7a);
+            // White middle circle
+            buttonGraphics.circle(0, 0, 20);
+            buttonGraphics.fill(0xe0e0e0);
+            // Black inner circle
+            buttonGraphics.circle(0, 0, 12);
+            buttonGraphics.fill(0x333333);
+        });
+        
+        this.buttonContainer.on('pointerout', () => {
+            buttonGraphics.clear();
+            // Outer white ring
+            buttonGraphics.circle(0, 0, 30);
+            buttonGraphics.fill(0xffffff);
+            // Gap
+            buttonGraphics.circle(0, 0, 25);
+            buttonGraphics.fill(0x1a5f7a);
+            // White middle circle
+            buttonGraphics.circle(0, 0, 20);
+            buttonGraphics.fill(0xffffff);
+            // Black inner circle
+            buttonGraphics.circle(0, 0, 12);
+            buttonGraphics.fill(0x000000);
+        });
+        
+        // Add click handler
+        this.buttonContainer.on('pointerdown', () => {
+            this.toggleTextPanel();
+        });
+    }
+    
+    createTextPanel() {
+        // Panel is hidden initially
+        this.textPanelVisible = false;
+        
+        // Create text panel in HTML (easier to style and animate)
+        const panel = document.createElement('div');
+        panel.id = 'textPanel';
+        panel.style.cssText = `
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background-color: rgba(44, 62, 80, 0.95);
+            color: white;
+            padding: 2rem;
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
+            transition: right 0.3s ease-in-out;
+            z-index: 1000;
+            overflow-y: auto;
+        `;
+        
+        panel.innerHTML = `
+            <h2 style="margin-bottom: 1rem; color: #3498db;">Text Interface</h2>
+            <p style="line-height: 1.6;">
+                This is a sliding text interface panel. 
+                You can add any content here, such as dialogue, 
+                game information, or interactive text.
+            </p>
+            <div style="margin-top: 2rem; padding: 1rem; background-color: rgba(255, 255, 255, 0.1); border-radius: 5px;">
+                <h3 style="margin-bottom: 0.5rem;">Example Content</h3>
+                <p>This panel slides in from the right side of the screen when you click the circular button on the map.</p>
+            </div>
+        `;
+        
+        document.body.appendChild(panel);
+        this.textPanel = panel;
+    }
+    
+    toggleTextPanel() {
+        this.textPanelVisible = !this.textPanelVisible;
+        
+        if (this.textPanelVisible) {
+            this.textPanel.style.right = '0px';
+        } else {
+            this.textPanel.style.right = '-400px';
+        }
+    }
+    
+    updateButtonPosition() {
+        if (this.buttonContainer) {
+            // Update button position relative to boat (keeps it at a fixed map position)
+            this.buttonContainer.x = this.buttonWorldX - this.boat.x;
+            this.buttonContainer.y = this.buttonWorldY - this.boat.y;
+        }
     }
     
     updateControls() {
@@ -701,6 +835,7 @@ class SailingGame {
         this.updateWind();
         this.updatePhysics();
         this.updateChunks();
+        this.updateButtonPosition();
         
         // Draw
         this.drawOcean();
