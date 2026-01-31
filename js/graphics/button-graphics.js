@@ -48,9 +48,7 @@ class ButtonGraphics {
         
         // Add click handler
         this.graphics.on('pointerdown', () => {
-            if (this.onClickCallback) {
-                this.onClickCallback();
-            }
+            this.onClickCallback();
         });
     }
 }
