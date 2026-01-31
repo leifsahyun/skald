@@ -310,16 +310,16 @@ class SailingGame {
             this.buttonGraphics.zIndex = 1;
             this.buttonGraphics.setTransform((new PIXI.Matrix()).translate(this.buttonWorldX, this.buttonWorldY));
             // Outer white ring
-            this.buttonGraphics.circle(0, 0, 30);
+            this.buttonGraphics.circle(0, 0, 10);
             this.buttonGraphics.fill(outerColor);
             // Gap (transparent area) - draw as part of the background
-            this.buttonGraphics.circle(0, 0, 25);
-            this.buttonGraphics.fill(0x1a5f7a); // Same as ocean background to create gap effect
+            this.buttonGraphics.circle(0, 0, 8);
+            this.buttonGraphics.cut()
             // White middle circle
-            this.buttonGraphics.circle(0, 0, 20);
+            this.buttonGraphics.circle(0, 0, 7);
             this.buttonGraphics.fill(middleColor);
             // Black inner circle
-            this.buttonGraphics.circle(0, 0, 12);
+            this.buttonGraphics.circle(0, 0, 3);
             this.buttonGraphics.fill(innerColor);
         };
         
