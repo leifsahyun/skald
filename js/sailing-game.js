@@ -473,7 +473,7 @@ class SailingGame {
             }
             
             const chunkX = chunk.x * this.coastline.chunkPixelSize / this.coastline.chunkSize;
-            const chunkY = chunk.y * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+            const chunkY = -chunk.y * this.coastline.chunkPixelSize / this.coastline.chunkSize;
             this.coastline.graphics.get(key).x = chunkX - this.boat.x;
             this.coastline.graphics.get(key).y = chunkY - this.boat.y;
         }
