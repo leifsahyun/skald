@@ -318,13 +318,12 @@ class SailingGame {
         }
 
         if (this.keys['q']) {
-            const pressDuration = this.keyPressTime['w'] !== undefined ? now - this.keyPressTime['q'] : 0;
+            const pressDuration = this.keyPressTime['q'] !== undefined ? now - this.keyPressTime['q'] : 0;
             if (pressDuration >= SHORT_PRESS_DURATION) {
-            if (this.boat.sailHeight > SAIL_THRESHOLD) {
-                        this.boat.sailHeight = 0;
-                    } else {
-                        this.boat.sailHeight = 1.0;
-                    }
+                if (this.boat.sailHeight > SAIL_THRESHOLD) {
+                    this.boat.sailHeight = 0;
+                } else {
+                    this.boat.sailHeight = 1.0;
                 }
             }
         }
