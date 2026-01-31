@@ -307,6 +307,7 @@ class SailingGame {
         // Helper function to draw button with specified colors
         const drawButton = (outerColor, middleColor, innerColor) => {
             this.buttonGraphics.clear();
+            this.buttonGraphics.setTransform((new PIXI.Matrix()).translate(this.buttonWorldX, this.buttonWorldY));
             // Outer white ring
             this.buttonGraphics.circle(0, 0, 30);
             this.buttonGraphics.fill(outerColor);
