@@ -466,8 +466,7 @@ class SailingGame {
                 const chunkX = chunk.x * this.coastline.chunkPixelSize / this.coastline.chunkSize;
                 const chunkY = chunk.y * this.coastline.chunkPixelSize / this.coastline.chunkSize;
                 
-                g.translateTransform(chunkX - this.boat.x, chunkY - this.boat.y);
-                g.texture(chunk.texture);
+                g.texture(chunk.texture, #ffffff, chunkX - this.boat.x, chunkY - this.boat.y);
                 
                 this.coastlineContainer.addChild(g);
                 this.coastline.graphics.set(key, g);
