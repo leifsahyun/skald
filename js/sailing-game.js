@@ -359,9 +359,8 @@ class SailingGame {
         const closeBtn = document.getElementById('closePanelBtn');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
-                if (this.textPanel && this.isPanelOpen) {
-                    this.textPanel.classList.remove('open');
-                    this.isPanelOpen = false;
+                if (this.isPanelOpen) {
+                    this.toggleTextPanel();
                 }
             });
         }
