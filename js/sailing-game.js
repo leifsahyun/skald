@@ -12,7 +12,8 @@ class SailingGame {
             scaleFactor: 2.0,
             chunks: new Map(),
             chunkIndex: [],
-            chunkSize: 1800,
+            chunkPixelSize: 1800,
+            chunkSize: 0.5,
             loadDistance: 2,
             indexLoaded: false,
             graphics: new Map()
@@ -131,8 +132,8 @@ class SailingGame {
     
     getChunkCoordsFromWorldPos(worldX, worldY) {
         const scale = this.coastline.scaleFactor;
-        const chunkX = Math.floor(worldX / this.coastline.chunkSize) * this.coastline.chunkSize;
-        const chunkY = Math.floor(worldY / this.coastline.chunkSize) * this.coastline.chunkSize;
+        const chunkX = Math.floor(worldX / this.coastline.chunkPixelSize) * this.coastline.chunkSize;
+        const chunkY = Math.floor(worldY / this.coastline.chunkPixelSize) * this.coastline.chunkSize;
         return { chunkX, chunkY };
     }
     
