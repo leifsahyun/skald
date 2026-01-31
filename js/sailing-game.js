@@ -311,10 +311,14 @@ class SailingGame {
             this.buttonGraphics.setTransform((new PIXI.Matrix()).translate(this.buttonWorldX, this.buttonWorldY));
             // Outer white ring
             this.buttonGraphics.circle(0, 0, 10);
-            this.buttonGraphics.fill(outerColor);
-            // Gap (transparent area) - draw as part of the background
-            this.buttonGraphics.circle(0, 0, 8);
-            this.buttonGraphics.cut();
+            this.buttonGraphics.stroke({width: 2, color: outerColor});
+            
+            // White middle circle
+            this.buttonGraphics.circle(0, 0, 7);
+            this.buttonGraphics.fill(middleColor);
+            // Black inner circle
+            this.buttonGraphics.circle(0, 0, 3);
+            this.buttonGraphics.fill(innerColor);
         };
         
         // Draw initial button state
