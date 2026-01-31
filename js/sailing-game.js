@@ -156,12 +156,6 @@ class SailingGame {
         });
         
         PIXI.Assets.load(`map/${chunkData.fileName}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.text();
-            })
             .then(texture => {
                 const chunk = this.coastline.chunks.get(key);
                 if (chunk) {
