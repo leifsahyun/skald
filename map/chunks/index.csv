@@ -1,2 +1,4 @@
-0,0,chunks/viz.hh_hillshade-color.png
-
+5.5,59.5,chunks/viz.hh_hillshade-color.png
+5.0,59.0,chunks/raster_chunk_x050y590.png
+5.0,59.5,chunks/raster_chunk_x050y595.png
+5.5,59.0,chunks/raster_chunk_x055y590.png
