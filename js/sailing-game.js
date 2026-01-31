@@ -98,8 +98,10 @@ class SailingGame {
         
         // Cache reference to text panel element
         this.textPanel = document.getElementById('textPanel');
+        this.isPanelOpen = false;
         
         this.setupControls();
+        this.setupCloseButton();
         this.createCircularButton();
         this.loadChunkIndex();
         this.gameLoop();
@@ -349,10 +351,28 @@ class SailingGame {
     toggleTextPanel() {
         if (this.textPanel) {
             this.textPanel.classList.toggle('open');
+            this.isPanelOpen = this.textPanel.classList.contains('open');
+        }
+    }
+    
+    setupCloseButton() {
+        const closeBtn = document.getElementById('closePanelBtn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                if (this.textPanel && this.isPanelOpen) {
+                    this.textPanel.classList.remove('open');
+                    this.isPanelOpen = false;
+                }
+            });
         }
     }
     
     updateControls() {
+        // Skip controls when panel is open
+        if (this.isPanelOpen) {
+            return;
+        }
+        
         const now = Date.now();
         const LONG_PRESS_DURATION = 3000;
         const SHORT_PRESS_DURATION = 1000;
@@ -438,6 +458,11 @@ class SailingGame {
     }
     
     updatePhysics() {
+        // Skip physics when panel is open
+        if (this.isPanelOpen) {
+            return;
+        }
+        
         const boatAngle = this.boat.angle;
         const windAngle = this.wind.angle;
         const sailAngleRad = (this.boat.sailAngle * Math.PI) / 180;
