@@ -298,8 +298,8 @@ class SailingGame {
     
     createCircularButton() {
         // Button position in world coordinates (near the boat starting position)
-        this.buttonWorldX = this.boat.x + 50;
-        this.buttonWorldY = this.boat.y - 100;
+        this.buttonWorldX = this.boat.x - 50;
+        this.buttonWorldY = this.boat.y - 50;
         
         // Create the circular button graphics directly in coastlineContainer
         this.buttonGraphics = new PIXI.Graphics();
@@ -307,6 +307,7 @@ class SailingGame {
         // Helper function to draw button with specified colors
         const drawButton = (outerColor, middleColor, innerColor) => {
             this.buttonGraphics.clear();
+            this.buttonGraphics.zIndex = 1;
             this.buttonGraphics.setTransform((new PIXI.Matrix()).translate(this.buttonWorldX, this.buttonWorldY));
             // Outer white ring
             this.buttonGraphics.circle(0, 0, 30);
