@@ -21,8 +21,8 @@ class SailingGame {
         
         // Boat state
         this.boat = {
-            x: 750,
-            y: 1350,
+            x: 5.6 * chunkPixelSize / chunkSize,
+            y: 59.3 * chunkPixelSize / chunkSize,
             angle: 0,
             speed: 0,
             maxSpeed: 10,
