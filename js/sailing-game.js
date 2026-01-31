@@ -9,7 +9,7 @@ class SailingGame {
 
         // Coastline configuration
         this.coastline = {
-            scaleFactor: 1.0,
+            scaleFactor: 2.0,
             chunks: new Map(),
             chunkIndex: [],
             chunkSize: 1800,
@@ -20,8 +20,8 @@ class SailingGame {
         
         // Boat state
         this.boat = {
-            x: 1 * this.coastline.scaleFactor,
-            y: 1 * this.coastline.scaleFactor,
+            x: 50 * this.coastline.scaleFactor,
+            y: 400 * this.coastline.scaleFactor,
             angle: 0,
             speed: 0,
             maxSpeed: 10,
