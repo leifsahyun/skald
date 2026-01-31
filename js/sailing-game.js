@@ -298,7 +298,7 @@ class SailingGame {
     
     createCircularButton() {
         // Button position in world coordinates (near the boat starting position)
-        this.buttonWorldX = this.boat.x + 150;
+        this.buttonWorldX = this.boat.x + 50;
         this.buttonWorldY = this.boat.y - 100;
         
         // Create the circular button graphics directly in coastlineContainer
@@ -526,8 +526,8 @@ class SailingGame {
         const scale = this.coastline.scaleFactor;
         
         // Update coastline container position
-        this.coastlineContainer.x = -this.boat.x * scale;
-        this.coastlineContainer.y = -this.boat.y * scale;
+        this.coastlineContainer.x = this.width / 2 - this.boat.x * scale;
+        this.coastlineContainer.y = this.height / 2 - this.boat.y * scale;
         this.coastlineContainer.scale.set(scale);
         
         // Draw each loaded chunk
