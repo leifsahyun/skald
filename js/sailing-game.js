@@ -429,7 +429,7 @@ class SailingGame {
             for (let y = waveY; y < this.height; y += 40) {
                 const points = [];
                 for (let x = 0; x <= this.width; x += 5) {
-                    const wave = Math.sin((x * waveFreq) + (this.waveOffset * waveSpeed) + (y * 0.01)) * waveHeight;
+                    const wave = Math.sin((x * waveFreq) + (-this.waveOffset * waveSpeed) + (y * 0.01)) * waveHeight;
                     points.push(x, y + wave);
                 }
                 g.moveTo(points[0], points[1]);
