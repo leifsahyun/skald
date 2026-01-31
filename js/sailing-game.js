@@ -472,7 +472,7 @@ class SailingGame {
             
             const chunkX = chunk.x * this.coastline.chunkPixelSize / this.coastline.chunkSize;
             const chunkY = chunk.y * this.coastline.chunkPixelSize / this.coastline.chunkSize;
-            this.coastline.graphics[key].setTransform((new PIXI.Matrix()).translate(chunkX - this.boat.x, chunkY - this.boat.y));
+            this.coastline.graphics.get(key).setTransform((new PIXI.Matrix()).translate(chunkX - this.boat.x, chunkY - this.boat.y));
         }
     }
     
