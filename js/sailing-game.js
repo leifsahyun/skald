@@ -155,7 +155,7 @@ class SailingGame {
             loaded: false
         });
         
-        Assets.load(`map/${chunkData.fileName}`)
+        PIXI.Assets.load(`map/${chunkData.fileName}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
