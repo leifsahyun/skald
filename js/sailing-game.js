@@ -525,8 +525,8 @@ class SailingGame {
         const scale = this.coastline.scaleFactor;
         
         // Update coastline container position
-        this.coastlineContainer.x = this.width / 2;
-        this.coastlineContainer.y = this.height / 2;
+        this.coastlineContainer.x = -this.boat.x * scale;
+        this.coastlineContainer.y = -this.boat.y * scale;
         this.coastlineContainer.scale.set(scale);
         
         // Draw each loaded chunk
@@ -549,8 +549,8 @@ class SailingGame {
             
             const chunkX = chunk.x * this.coastline.chunkPixelSize / this.coastline.chunkSize;
             const chunkY = -chunk.y * this.coastline.chunkPixelSize / this.coastline.chunkSize;
-            this.coastline.graphics.get(key).x = chunkX - this.boat.x;
-            this.coastline.graphics.get(key).y = chunkY - this.boat.y;
+            this.coastline.graphics.get(key).x = chunkX;
+            this.coastline.graphics.get(key).y = chunkY;
         }
     }
     
