@@ -96,6 +96,9 @@ class SailingGame {
         this.windGraphics = new PIXI.Graphics();
         this.windContainer.addChild(this.windGraphics);
         
+        // Cache reference to text panel element
+        this.textPanel = document.getElementById('textPanel');
+        
         this.setupControls();
         this.createCircularButton();
         this.loadChunkIndex();
@@ -344,9 +347,8 @@ class SailingGame {
     }
     
     toggleTextPanel() {
-        const panel = document.getElementById('textPanel');
-        if (panel) {
-            panel.classList.toggle('open');
+        if (this.textPanel) {
+            this.textPanel.classList.toggle('open');
         }
     }
     
