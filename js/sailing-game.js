@@ -215,6 +215,8 @@ class SailingGame {
                 if (chunk) {
                     chunk.texture = texture;
                     chunk.loaded = true;
+                    // Extract alpha channel data for collision detection
+                    this.extractAlphaData(chunk, texture);
                 }
             })
             .catch(error => {
@@ -250,6 +252,121 @@ class SailingGame {
             .catch(error => {
                 console.error('Failed to load POIs:', error);
             });
+    }
+    
+    extractAlphaData(chunk, texture) {
+        // Create a canvas to extract pixel data from the texture
+        const canvas = document.createElement('canvas');
+        const source = texture.source;
+        canvas.width = source.width;
+        canvas.height = source.height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(source.resource, 0, 0);
+        
+        // Get image data and extract alpha channel
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const alphaData = new Uint8Array(canvas.width * canvas.height);
+        
+        // Extract alpha channel (every 4th byte in RGBA data)
+        for (let i = 0; i < alphaData.length; i++) {
+            alphaData[i] = imageData.data[i * 4 + 3]; // Alpha is at index 3
+        }
+        
+        chunk.alphaData = alphaData;
+        chunk.alphaWidth = canvas.width;
+        chunk.alphaHeight = canvas.height;
+    }
+    
+    checkCollision(worldX, worldY) {
+        // Get the chunk coordinates for the boat's position
+        const { chunkX, chunkY } = this.getChunkCoordsFromWorldPos(worldX, worldY);
+        const key = this.getChunkKey(chunkX, chunkY);
+        const chunk = this.coastline.chunks.get(key);
+        
+        if (!chunk || !chunk.alphaData) {
+            return { colliding: false };
+        }
+        
+        // Convert world coordinates to chunk-local pixel coordinates
+        const chunkWorldX = chunkX * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+        const chunkWorldY = -chunkY * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+        
+        const localX = worldX - chunkWorldX;
+        const localY = worldY - chunkWorldY;
+        
+        // Convert to pixel coordinates in the texture
+        const pixelX = Math.floor(localX);
+        const pixelY = Math.floor(localY);
+        
+        // Check if pixel coordinates are within bounds
+        if (pixelX < 0 || pixelX >= chunk.alphaWidth || pixelY < 0 || pixelY >= chunk.alphaHeight) {
+            return { colliding: false };
+        }
+        
+        // Check alpha value at this pixel
+        const index = pixelY * chunk.alphaWidth + pixelX;
+        const alpha = chunk.alphaData[index];
+        
+        // Consider alpha > 200 as solid (nearly full opacity)
+        if (alpha > 200) {
+            return { 
+                colliding: true, 
+                pixelX: pixelX + chunkWorldX,
+                pixelY: pixelY + chunkWorldY
+            };
+        }
+        
+        return { colliding: false };
+    }
+    
+    resolveCollision() {
+        // Check multiple points around the boat
+        const boatPoints = [
+            { x: this.boat.x + Math.cos(this.boat.angle) * this.boat.length / 2, 
+              y: this.boat.y + Math.sin(this.boat.angle) * this.boat.length / 2 }, // bow
+            { x: this.boat.x + Math.cos(this.boat.angle + Math.PI / 2) * this.boat.width / 2, 
+              y: this.boat.y + Math.sin(this.boat.angle + Math.PI / 2) * this.boat.width / 2 }, // starboard
+            { x: this.boat.x + Math.cos(this.boat.angle - Math.PI / 2) * this.boat.width / 2, 
+              y: this.boat.y + Math.sin(this.boat.angle - Math.PI / 2) * this.boat.width / 2 }, // port
+            { x: this.boat.x, y: this.boat.y } // center
+        ];
+        
+        let collisionFound = false;
+        let avgCollisionX = 0;
+        let avgCollisionY = 0;
+        let collisionCount = 0;
+        
+        for (const point of boatPoints) {
+            const collision = this.checkCollision(point.x, point.y);
+            if (collision.colliding) {
+                collisionFound = true;
+                avgCollisionX += collision.pixelX;
+                avgCollisionY += collision.pixelY;
+                collisionCount++;
+            }
+        }
+        
+        if (collisionFound && collisionCount > 0) {
+            // Calculate average collision point
+            avgCollisionX /= collisionCount;
+            avgCollisionY /= collisionCount;
+            
+            // Push boat away from collision point
+            const dx = this.boat.x - avgCollisionX;
+            const dy = this.boat.y - avgCollisionY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 0) {
+                // Normalize and push boat away
+                const pushStrength = 2.0;
+                this.boat.x += (dx / distance) * pushStrength;
+                this.boat.y += (dy / distance) * pushStrength;
+                
+                // Reduce boat speed on collision
+                this.boat.speed *= 0.8;
+            }
+        }
     }
     
     updateChunks() {
@@ -717,6 +834,9 @@ class SailingGame {
         
         this.boat.x += Math.cos(this.boat.angle) * this.boat.speed + waveSpeed;
         this.boat.y += Math.sin(this.boat.angle) * this.boat.speed;
+        
+        // Check and resolve collisions with coastline
+        this.resolveCollision();
     }
     
     drawOcean() {
