@@ -88,9 +88,9 @@ class SailingGame {
         this.windContainer = new PIXI.Container();
         this.worldContainer = new PIXI.Container();
 
-        this.worldContainer.addChild(this.oceanContainer);
         this.worldContainer.addChild(this.coastlineContainer);
         this.worldContainer.addChild(this.boatContainer);
+        this.app.stage.addChild(this.oceanContainer);
         this.app.stage.addChild(this.worldContainer);
         this.app.stage.addChild(this.windContainer);
 
@@ -411,8 +411,8 @@ class SailingGame {
         const boxHeight = maxY - minY;
         
         // Calculate the center of the zoomBox
-        const centerX = this.width / 2 - (minX + maxX) / 2 + this.boat.x * this.coastline.scaleFactor;
-        const centerY = this.height / 2 - (minY + maxY) / 2 + this.boat.y * this.coastline.scaleFactor;
+        const centerX = this.width / 2 - (minX + maxX) / 2 + this.boat.x;
+        const centerY = this.height / 2 - (minY + maxY) / 2 + this.boat.y;
         
         // Calculate the scale needed to fit the zoomBox in the viewport
         const scaleX = this.width / boxWidth / this.coastline.scaleFactor;
