@@ -474,11 +474,24 @@ class SailingGame {
         }
     }
     
-    updatePanelContent(poiData) {
+    updatePanelContent(poiData, subtitle = null) {
         // Update the panel title
         const titleElement = this.textPanel.querySelector('h2');
         if (titleElement) {
             titleElement.textContent = poiData.name;
+        }
+        
+        // Handle subtitle (add or remove)
+        let subtitleElement = this.textPanel.querySelector('.panel-subtitle');
+        if (subtitle) {
+            if (!subtitleElement) {
+                subtitleElement = document.createElement('div');
+                subtitleElement.className = 'panel-subtitle';
+                titleElement.parentNode.insertBefore(subtitleElement, titleElement.nextSibling);
+            }
+            subtitleElement.textContent = this.toTitleCase(subtitle);
+        } else if (subtitleElement) {
+            subtitleElement.remove();
         }
         
         // Clear and update the panel content
@@ -530,10 +543,9 @@ class SailingGame {
     }
     
     showDetail(name) {
-        // Update the panel to show detail view
-        const titleElement = this.textPanel.querySelector('h2');
-        if (titleElement) {
-            titleElement.textContent = this.toTitleCase(name);
+        // Update the panel to show detail view with POI name as title and character/action as subtitle
+        if (this.currentPoi) {
+            this.updatePanelContent(this.currentPoi, name);
         }
         
         const contentElement = this.textPanel.querySelector('.panel-content');
