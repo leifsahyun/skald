@@ -353,8 +353,16 @@ footer {
 }
 
 .text-panel h2 {
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     color: #3498db;
+}
+
+.text-panel .panel-subtitle {
+    font-size: 1rem;
+    color: #7f8c8d;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-style: italic;
 }
 
 .text-panel p {
