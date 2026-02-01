@@ -46,7 +46,7 @@ class SailingGame {
             }
         };
         
-        this.wind.targetAngle = Math.random() * Math.PI * 2;
+        this.wind.targetAngle = this.generateWindTargetAngle();
         
         // Ocean animation
         this.waveOffset = 0;
@@ -416,6 +416,22 @@ class SailingGame {
             this.boat.speed = Math.max(maxBackwardsRowSpeed, this.boat.speed - rowingForce);
     }
     
+    generateWindTargetAngle() {
+        // Wind should point between north (3π/2), east (0/2π), and south (π/2)
+        // This is the range from -π/2 to π/2, favoring angles closer to east (0)
+        // Using power distribution to strongly favor center (east)
+        const rand = Math.random(); // 0 to 1
+        const centered = rand - 0.5; // -0.5 to 0.5
+        // Use power of 3 to create strong bias toward center
+        const biased = Math.sign(centered) * Math.pow(Math.abs(centered) * 2, 3) / 2;
+        
+        // Map to range [-π/2, π/2], biased toward 0 (east)
+        const angle = biased * Math.PI;
+        
+        // Normalize to [0, 2π]
+        return (angle + 2 * Math.PI) % (2 * Math.PI);
+    }
+    
     updateWind() {
         let angleDiff = this.wind.targetAngle - this.wind.angle;
         angleDiff = ((angleDiff + Math.PI) % (2 * Math.PI)) - Math.PI;
@@ -423,7 +439,7 @@ class SailingGame {
         if (Math.abs(angleDiff) > this.wind.targetThreshold) {
             this.wind.angle += Math.sign(angleDiff) * this.wind.changeRate;
         } else {
-            this.wind.targetAngle = Math.random() * Math.PI * 2;
+            this.wind.targetAngle = this.generateWindTargetAngle();
         }
         
         this.wind.angle = ((this.wind.angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
