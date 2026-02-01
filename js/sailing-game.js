@@ -441,13 +441,8 @@ class SailingGame {
     
     getActionIcon(action) {
         const iconMap = {
-            'trade': '🛒',
-            'shop': '🏪',
+            'trade': '💰',
             'rest': '🛏️',
-            'quest': '📜',
-            'fight': '⚔️',
-            'talk': '💬',
-            'explore': '🔍'
         };
         return iconMap[action.toLowerCase()] || '📍';
     }
