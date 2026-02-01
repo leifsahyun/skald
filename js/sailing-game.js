@@ -109,8 +109,7 @@ class SailingGame {
         this.isPanelOpen = false;
         
         this.setupControls();
-        this.setupCloseButton();
-        this.createCircularButton();
+        this.setupCloseButton()
         this.loadChunkIndex();
         this.loadPoiIndex();
         this.gameLoop();
@@ -360,14 +359,6 @@ class SailingGame {
         addButtonListeners('sailOutBtn', 'mouse', 'right');
         addButtonListeners('forwardBtn', 'button', 'forward');
         addButtonListeners('sailBtn', 'button', 'sail');
-    }
-
-    createCircularButton() {
-        // Button position in world coordinates (near the boat starting position)
-        this.buttonWorldX = this.boat.x - 50;
-        this.buttonWorldY = this.boat.y - 50;
-
-        this.buttonRenderer = this.createPoiButton(this.buttonWorldX, this.buttonWorldY);
     }
     
     createPoiButton(x,y) {
