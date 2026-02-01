@@ -32,7 +32,7 @@ class ButtonGraphics {
     drawButton(outerColor, middleColor, innerColor) {
         this.graphics.clear();
         this.graphics.zIndex = 1;
-        this.graphics.setTransform((new PIXI.Matrix()).translate(this.buttonWorldX, this.buttonWorldY));
+        this.graphics.setTransform((new PIXI.Matrix()).translate(this.buttonWorldX, this.buttonWorldY).rotate(this.pupilAngle));
         // Outer white ring
         this.graphics.circle(0, 0, 10);
         this.graphics.stroke({width: 2, color: outerColor});
@@ -42,7 +42,6 @@ class ButtonGraphics {
         this.graphics.fill(middleColor);
 
         // Black inner circle - with animated offset
-        this.graphics.rotateTransform(this.pupilAngle);
         this.graphics.circle(this.innerCircleOffsetX, this.innerCircleOffsetY, 3);
         this.graphics.fill(innerColor);
     }
