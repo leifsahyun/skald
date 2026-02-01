@@ -77,10 +77,10 @@ class ButtonGraphics {
     setupAnimation() {
         const animations = [
             [
-                [0,0,0],[0,4,0],[0,0,0],[0,-4,0],[0,0,0]
+                [0,0,0],[0,4,0],[0,-4,0],[0,0,0]
             ],
             [
-                [0,0,0],[4,0,0],[0,0,0],[-4,0,0],[0,0,0]
+                [0,0,0],[4,0,0],[-4,0,0],[0,0,0]
             ],
             [
                 [0,0,Math.PI/4],[4,0,Math.PI/4],[0,-4,Math.PI/4],[0,-4,2*Math.PI],[0,0,2*Math.PI],[0,0,0]
@@ -111,6 +111,7 @@ class ButtonGraphics {
             keyframes: {
                 innerCircleOffsetX: anim.map((a) => a[0]),
                 innerCircleOffsetY: anim.map((a) => a[1]),
+                pupilAngle: anim.map((a) => a[2]),
                 ease: 'none',
                 easeEach: 'sine.out',
             },
