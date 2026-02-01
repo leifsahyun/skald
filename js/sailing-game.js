@@ -434,10 +434,9 @@ class SailingGame {
             duration: 0.5,
             ease: "power2.inOut",
             onUpdate: () => {
-                const transform = new Matrix()
-                    .scale(this.globalTransform.scale)
-                    .translate(this.globalTransform.x, this.globalTransform.y);
-                this.worldContainer.setTransform(transform);
+                this.worldContainer.x = this.globalTransform.x;
+                this.worldContainer.y = this.globalTransform.y;
+                this.worldContainer.scale.set(this.globalTransform.scale);
             }
         });
     }
