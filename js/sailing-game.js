@@ -416,11 +416,6 @@ class SailingGame {
         // Use the smaller scale to ensure the entire box fits
         const newScale = Math.min(scaleX, scaleY);
         
-        // Store the current values
-        const startScale = this.coastline.scaleFactor;
-        const startX = this.boat.x;
-        const startY = this.boat.y;
-        
         // Use GSAP to tween the zoom over 0.5 seconds
         gsap.to(this.coastline, {
             scaleFactor: newScale,
