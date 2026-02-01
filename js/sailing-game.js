@@ -225,7 +225,7 @@ class SailingGame {
             return;
         }
 
-        fetch(`map/${poiData.fileName}`)
+        fetch(`pois/${poiData.fileName}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
