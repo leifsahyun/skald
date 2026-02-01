@@ -86,8 +86,15 @@ class ButtonGraphics {
         
         // Add click handler
         this.graphics.on('pointerdown', () => {
+            this.blinkNow();
             this.onClickCallback();
         });
+    }
+
+    blinkNow() {
+        this.blink = Date.now();
+        draw();
+        setTimeout(draw.bind(this), this.blinkTime);
     }
     
     setupAnimation() {
@@ -121,10 +128,8 @@ class ButtonGraphics {
         };
 
         const onComplete = () => {
-            this.blink = Date.now();
-            draw();
+            this.blinkNow();
             // Do a new animation after a delay
-            setTimeout(draw.bind(this), this.blinkTime);
             setTimeout(this.setupAnimation.bind(this), 10000 + Math.random() * 20000);
         };
         
