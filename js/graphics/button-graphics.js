@@ -19,6 +19,7 @@ class ButtonGraphics {
         // Animation state for inner circle
         this.innerCircleOffsetX = 0;
         this.innerCircleOffsetY = 0;
+        this.pupilAngle = 0;
         this.maxOffset = 3; // Maximum distance inner circle can move from center
         
         // Track hover state
@@ -39,7 +40,9 @@ class ButtonGraphics {
         // White middle circle
         this.graphics.circle(0, 0, 7);
         this.graphics.fill(middleColor);
+
         // Black inner circle - with animated offset
+        this.graphics.rotateTransform(this.pupilAngle);
         this.graphics.circle(this.innerCircleOffsetX, this.innerCircleOffsetY, 3);
         this.graphics.fill(innerColor);
     }
@@ -75,16 +78,16 @@ class ButtonGraphics {
     setupAnimation() {
         const animations = [
             [
-                [0,0],[0,4],[0,0],[0,-4],[0,0]
+                [0,0,0],[0,4,0],[0,0,0],[0,-4,0],[0,0,0]
             ],
             [
-                [0,0],[4,0],[0,0],[-4,0],[0,0]
+                [0,0,0],[4,0,0],[0,0,0],[-4,0,0],[0,0,0]
             ],
             [
-                [0,0],[2.8,2.8],[2.8,2.8],[2.8,-2.8],[2.8,-2.8],[4,0],[2.8,2.8],[0,4],[-2.8,2.8],[-4,0],[-2.8,-2.8],[0,-4],[0,0]
+                [0,0,Math.PI/4],[4,0,Math.PI/4],[0,-4,Math.PI/4],[0,-4,2*Math.PI],[0,0,2*Math.PI],[0,0,0]
             ],
             [
-                [0,0],[-2.8,-2.8],[-2.8,-2.8],[2.8,-2.8],[2.8,-2.8],[0,-4],[-2.8,-2.8],[-4,0],[-2.8,2.8],[0,4],[2.8,2.8],[4,0],[0,0]
+                [0,0,Math.PI/4],[-4,0,Math.PI/4],[0,-4,Math.PI/4],[0,-4,-2*Math.PI],[0,0,-2*Math.PI],[0,0,0]
             ],
         ];
 
@@ -99,10 +102,10 @@ class ButtonGraphics {
             }
         };
 
-        const onComplete = (() => {
+        const onComplete = () => {
             // Do a new animation after a delay
-            setTimeout(this.setupAnimation, 2000 + Math.random() * 3000);
-        }).bind(this);
+            setTimeout(this.setupAnimation.bind(this), 2000 + Math.random() * 3000);
+        };
         
         // Use GSAP to animate the inner circle with keyframes
         gsap.to(this, {
