@@ -390,6 +390,13 @@ class SailingGame {
             return;
         }
         
+        // Store the original zoom state before changing it
+        this.originalZoomState = {
+            scaleFactor: this.coastline.scaleFactor,
+            boatX: this.boat.x,
+            boatY: this.boat.y
+        };
+        
         // Convert zoomBox coordinates from lat/lon to pixels
         // zoomBox format: [minLon, minLat, maxLon, maxLat]
         const [minLon, minLat, maxLon, maxLat] = poiData.zoomBox;
@@ -438,6 +445,26 @@ class SailingGame {
         });
     }
     
+    restoreOriginalZoom() {
+        if (!this.originalZoomState) {
+            return;
+        }
+        
+        // Tween back to the original zoom state
+        gsap.to(this.coastline, {
+            scaleFactor: this.originalZoomState.scaleFactor,
+            duration: 0.5,
+            ease: "power2.inOut"
+        });
+        
+        gsap.to(this.boat, {
+            x: this.originalZoomState.boatX,
+            y: this.originalZoomState.boatY,
+            duration: 0.5,
+            ease: "power2.inOut"
+        });
+    }
+    
     openPoiPanel(poiData) {
         if (this.textPanel) {
             this.currentPoi = poiData;
@@ -452,9 +479,12 @@ class SailingGame {
             this.textPanel.classList.toggle('open');
             this.isPanelOpen = this.textPanel.classList.contains('open');
             
-            // If panel is being closed, show the POI button again
-            if (!this.isPanelOpen && this.currentPoi && this.currentPoi.button) {
-                this.currentPoi.button.show();
+            // If panel is being closed, restore original zoom and show the POI button
+            if (!this.isPanelOpen) {
+                this.restoreOriginalZoom();
+                if (this.currentPoi && this.currentPoi.button) {
+                    this.currentPoi.button.show();
+                }
             }
         }
     }
