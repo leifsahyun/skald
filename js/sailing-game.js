@@ -25,6 +25,9 @@ class SailingGame {
             poiIndexLoaded: false,
             graphics: new Map(),
             poiInteractionRadius: 80, // Max distance for POI interaction in world units
+            collisionAlphaThreshold: 200, // Alpha value above which pixels are considered solid
+            collisionPushStrength: 2.0, // How far to push boat away from collision
+            collisionSpeedDamping: 0.8 // Speed multiplier on collision (0.8 = 20% reduction)
         };
         
         // Pre-calculate squared radius for distance comparisons (performance optimization)
@@ -295,12 +298,12 @@ class SailingGame {
         const localX = worldX - chunkWorldX;
         const localY = worldY - chunkWorldY;
         
-        // Convert to pixel coordinates in the texture
-        const pixelX = Math.floor(localX);
-        const pixelY = Math.floor(localY);
+        // Convert to pixel coordinates in the texture, ensuring non-negative values
+        const pixelX = Math.max(0, Math.floor(localX));
+        const pixelY = Math.max(0, Math.floor(localY));
         
         // Check if pixel coordinates are within bounds
-        if (pixelX < 0 || pixelX >= chunk.alphaWidth || pixelY < 0 || pixelY >= chunk.alphaHeight) {
+        if (pixelX >= chunk.alphaWidth || pixelY >= chunk.alphaHeight) {
             return { colliding: false };
         }
         
@@ -308,8 +311,8 @@ class SailingGame {
         const index = pixelY * chunk.alphaWidth + pixelX;
         const alpha = chunk.alphaData[index];
         
-        // Consider alpha > 200 as solid (nearly full opacity)
-        if (alpha > 200) {
+        // Use configured threshold for collision detection
+        if (alpha > this.coastline.collisionAlphaThreshold) {
             return { 
                 colliding: true, 
                 pixelX: pixelX + chunkWorldX,
@@ -320,15 +323,21 @@ class SailingGame {
         return { colliding: false };
     }
     
+    getBoatCollisionPoint(offsetAngle, distance) {
+        // Helper method to calculate collision points around the boat
+        const angle = this.boat.angle + offsetAngle;
+        return {
+            x: this.boat.x + Math.cos(angle) * distance,
+            y: this.boat.y + Math.sin(angle) * distance
+        };
+    }
+    
     resolveCollision() {
-        // Check multiple points around the boat
+        // Check multiple points around the boat using helper method
         const boatPoints = [
-            { x: this.boat.x + Math.cos(this.boat.angle) * this.boat.length / 2, 
-              y: this.boat.y + Math.sin(this.boat.angle) * this.boat.length / 2 }, // bow
-            { x: this.boat.x + Math.cos(this.boat.angle + Math.PI / 2) * this.boat.width / 2, 
-              y: this.boat.y + Math.sin(this.boat.angle + Math.PI / 2) * this.boat.width / 2 }, // starboard
-            { x: this.boat.x + Math.cos(this.boat.angle - Math.PI / 2) * this.boat.width / 2, 
-              y: this.boat.y + Math.sin(this.boat.angle - Math.PI / 2) * this.boat.width / 2 }, // port
+            this.getBoatCollisionPoint(0, this.boat.length / 2), // bow
+            this.getBoatCollisionPoint(Math.PI / 2, this.boat.width / 2), // starboard
+            this.getBoatCollisionPoint(-Math.PI / 2, this.boat.width / 2), // port
             { x: this.boat.x, y: this.boat.y } // center
         ];
         
@@ -358,13 +367,12 @@ class SailingGame {
             const distance = Math.sqrt(dx * dx + dy * dy);
             
             if (distance > 0) {
-                // Normalize and push boat away
-                const pushStrength = 2.0;
-                this.boat.x += (dx / distance) * pushStrength;
-                this.boat.y += (dy / distance) * pushStrength;
+                // Normalize and push boat away using configured strength
+                this.boat.x += (dx / distance) * this.coastline.collisionPushStrength;
+                this.boat.y += (dy / distance) * this.coastline.collisionPushStrength;
                 
-                // Reduce boat speed on collision
-                this.boat.speed *= 0.8;
+                // Reduce boat speed on collision using configured damping
+                this.boat.speed *= this.coastline.collisionSpeedDamping;
             }
         }
     }
