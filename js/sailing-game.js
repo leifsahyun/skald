@@ -96,6 +96,11 @@ class SailingGame {
         this.windGraphics = new PIXI.Graphics();
         this.windContainer.addChild(this.windGraphics);
         
+        // Initialize graphics renderers
+        this.oceanRenderer = new OceanGraphics(this.oceanGraphics, this.width, this.height);
+        this.boatRenderer = new BoatGraphics(this.boatGraphics, this.boatContainer);
+        this.windRenderer = new WindGraphics(this.windGraphics, this.windContainer);
+        
         // Cache reference to text panel element
         this.textPanel = document.getElementById('textPanel');
         this.isPanelOpen = false;
@@ -306,46 +311,14 @@ class SailingGame {
         // Create the circular button graphics directly in coastlineContainer
         this.buttonGraphics = new PIXI.Graphics();
         
-        // Helper function to draw button with specified colors
-        const drawButton = (outerColor, middleColor, innerColor) => {
-            this.buttonGraphics.clear();
-            this.buttonGraphics.zIndex = 1;
-            this.buttonGraphics.setTransform((new PIXI.Matrix()).translate(this.buttonWorldX, this.buttonWorldY));
-            // Outer white ring
-            this.buttonGraphics.circle(0, 0, 10);
-            this.buttonGraphics.stroke({width: 2, color: outerColor});
-            
-            // White middle circle
-            this.buttonGraphics.circle(0, 0, 7);
-            this.buttonGraphics.fill(middleColor);
-            // Black inner circle
-            this.buttonGraphics.circle(0, 0, 3);
-            this.buttonGraphics.fill(innerColor);
-        };
-        
-        // Draw initial button state
-        drawButton(0xffffff, 0xffffff, 0x000000);
-        
-        // Add button directly to coastlineContainer
-        this.coastlineContainer.addChild(this.buttonGraphics);
-        
-        // Make button interactive
-        this.buttonGraphics.eventMode = 'static';
-        this.buttonGraphics.cursor = 'pointer';
-        
-        // Add hover effect
-        this.buttonGraphics.on('pointerover', () => {
-            drawButton(0xe0e0e0, 0xe0e0e0, 0x333333);
-        });
-        
-        this.buttonGraphics.on('pointerout', () => {
-            drawButton(0xffffff, 0xffffff, 0x000000);
-        });
-        
-        // Add click handler
-        this.buttonGraphics.on('pointerdown', () => {
-            this.toggleTextPanel();
-        });
+        // Initialize button renderer
+        this.buttonRenderer = new ButtonGraphics(
+            this.buttonGraphics, 
+            this.coastlineContainer, 
+            this.buttonWorldX, 
+            this.buttonWorldY,
+            () => this.toggleTextPanel()
+        );
     }
     
     toggleTextPanel() {
@@ -494,51 +467,7 @@ class SailingGame {
     }
     
     drawOcean() {
-        const g = this.oceanGraphics;
-        g.clear();
-        
-        // Draw gradient background (using multiple rectangles)
-        const steps = 50;
-        for (let i = 0; i < steps; i++) {
-            const t = i / steps;
-            let r, gr, b;
-            if (t < 0.5) {
-                const localT = t * 2;
-                r = Math.floor(26 + (45 - 26) * localT);
-                gr = Math.floor(95 + (125 - 95) * localT);
-                b = Math.floor(122 + (165 - 122) * localT);
-            } else {
-                const localT = (t - 0.5) * 2;
-                r = Math.floor(45 + (26 - 45) * localT);
-                gr = Math.floor(125 + (79 - 125) * localT);
-                b = Math.floor(165 + (106 - 165) * localT);
-            }
-            const color = (r << 16) | (gr << 8) | b;
-            g.rect(0, i * this.height / steps, this.width, this.height / steps);
-            g.fill(color);
-        }
-        
-        // Draw animated waves
-        for (let layer = 0; layer < 3; layer++) {
-            const waveY = layer * 150;
-            const waveSpeed = 0.5 + layer * 0.3;
-            const waveHeight = 8 - layer * 2;
-            const waveFreq = 0.015 + layer * 0.005;
-            const alpha = 0.15 - layer * 0.04;
-            
-            for (let y = waveY; y < this.height; y += 40) {
-                const points = [];
-                for (let x = 0; x <= this.width; x += 5) {
-                    const wave = Math.sin((x * waveFreq) + (-this.waveOffset * waveSpeed) + (y * 0.01)) * waveHeight;
-                    points.push(x, y + wave);
-                }
-                g.moveTo(points[0], points[1]);
-                for (let i = 2; i < points.length; i += 2) {
-                    g.lineTo(points[i], points[i + 1]);
-                }
-                g.stroke({ width: 2, color: 0xffffff, alpha: alpha });
-            }
-        }
+        this.oceanRenderer.draw(this.waveOffset);
     }
     
     drawCoastline() {
@@ -579,183 +508,11 @@ class SailingGame {
     }
     
     drawWind() {
-        const g = this.windGraphics;
-        g.clear();
-        
-        const centerX = 100;
-        const centerY = 100;
-        
-        // Wind indicator background
-        g.circle(centerX, centerY, 50);
-        g.fill({ color: 0xffffff, alpha: 0.9 });
-        g.circle(centerX, centerY, 50);
-        g.stroke({ width: 2, color: 0x2c3e50 });
-        
-        // Create text for compass directions (using PIXI.Text)
-        if (!this.windText) {
-            this.windText = {
-                n: new PIXI.Text({ text: 'N', style: { fontFamily: 'Arial', fontSize: 14, fill: 0x2c3e50, align: 'center' } }),
-                s: new PIXI.Text({ text: 'S', style: { fontFamily: 'Arial', fontSize: 14, fill: 0x2c3e50, align: 'center' } }),
-                e: new PIXI.Text({ text: 'E', style: { fontFamily: 'Arial', fontSize: 14, fill: 0x2c3e50, align: 'center' } }),
-                w: new PIXI.Text({ text: 'W', style: { fontFamily: 'Arial', fontSize: 14, fill: 0x2c3e50, align: 'center' } }),
-                label: new PIXI.Text({ text: 'WIND', style: { fontFamily: 'Arial', fontSize: 12, fill: 0x2c3e50, align: 'center' } })
-            };
-            
-            this.windText.n.anchor.set(0.5);
-            this.windText.s.anchor.set(0.5);
-            this.windText.e.anchor.set(0.5);
-            this.windText.w.anchor.set(0.5);
-            this.windText.label.anchor.set(0.5);
-            
-            this.windContainer.addChild(this.windText.n);
-            this.windContainer.addChild(this.windText.s);
-            this.windContainer.addChild(this.windText.e);
-            this.windContainer.addChild(this.windText.w);
-            this.windContainer.addChild(this.windText.label);
-        }
-        
-        this.windText.n.x = centerX;
-        this.windText.n.y = centerY - 35;
-        this.windText.s.x = centerX;
-        this.windText.s.y = centerY + 35;
-        this.windText.e.x = centerX + 35;
-        this.windText.e.y = centerY;
-        this.windText.w.x = centerX - 35;
-        this.windText.w.y = centerY;
-        this.windText.label.x = centerX;
-        this.windText.label.y = centerY + 70;
-        
-        // Wind arrow
-        const arrowLength = 30;
-        const arrowEndX = centerX + Math.cos(this.wind.angle) * arrowLength;
-        const arrowEndY = centerY + Math.sin(this.wind.angle) * arrowLength;
-        
-        g.moveTo(centerX, centerY);
-        g.lineTo(arrowEndX, arrowEndY);
-        g.stroke({ width: 3, color: 0xe74c3c });
-        
-        // Arrow head
-        const headAngle = this.wind.angle;
-        const headSize = 10;
-        g.moveTo(arrowEndX, arrowEndY);
-        g.lineTo(
-            arrowEndX - headSize * Math.cos(headAngle - Math.PI / 6),
-            arrowEndY - headSize * Math.sin(headAngle - Math.PI / 6)
-        );
-        g.lineTo(
-            arrowEndX - headSize * Math.cos(headAngle + Math.PI / 6),
-            arrowEndY - headSize * Math.sin(headAngle + Math.PI / 6)
-        );
-        g.closePath();
-        g.fill(0xe74c3c);
+        this.windRenderer.draw(this.wind);
     }
     
     drawBoat() {
-        const g = this.boatGraphics;
-        g.clear();
-        
-        const boat = this.boat;
-        
-        // Set boat rotation
-        this.boatContainer.rotation = boat.angle;
-        
-        // Boat hull - filled
-        g.poly([
-            boat.length / 2, 0,
-            -boat.length / 2, boat.width / 2,
-            -boat.length / 2, -boat.width / 2
-        ]);
-        g.fill(0x8b4513);
-        
-        // Boat hull - stroke
-        g.poly([
-            boat.length / 2, 0,
-            -boat.length / 2, boat.width / 2,
-            -boat.length / 2, -boat.width / 2
-        ]);
-        g.stroke({ width: 2, color: 0x654321 });
-        
-        // Deck detail
-        g.poly([
-            boat.length / 4, 0,
-            -boat.length / 3, boat.width / 3,
-            -boat.length / 3, -boat.width / 3
-        ]);
-        g.fill(0xa0522d);
-        
-        // Sail
-        const mastHeight = 60 * this.boat.sailHeight;
-        if (this.boat.sailHeight > 0.1) {
-            const sailAngleRad = (boat.sailAngle * Math.PI) / 180;
-            const cos = Math.cos(sailAngleRad);
-            const sin = Math.sin(sailAngleRad);
-            
-            // Sail shadow
-            const shadow = [
-                {x: 2, y: -2},
-                {x: 32 * this.boat.sailHeight, y: -mastHeight * 0.7},
-                {x: 2, y: -mastHeight + 2}
-            ];
-            const shadowPoints = [];
-            shadow.forEach(p => {
-                const rx = p.x * cos - p.y * sin;
-                const ry = p.x * sin + p.y * cos;
-                shadowPoints.push(rx, ry);
-            });
-            g.poly(shadowPoints);
-            g.fill({ color: 0x000000, alpha: 0.2 });
-            
-            // Main sail - fill
-            const sail = [
-                {x: 0, y: 0},
-                {x: 30 * this.boat.sailHeight, y: -mastHeight * 0.7},
-                {x: 0, y: -mastHeight}
-            ];
-            const sailPoints = [];
-            sail.forEach(p => {
-                const rx = p.x * cos - p.y * sin;
-                const ry = p.x * sin + p.y * cos;
-                sailPoints.push(rx, ry);
-            });
-            g.poly(sailPoints);
-            g.fill(0xf0f0f0);
-            
-            // Main sail - stroke
-            g.poly(sailPoints);
-            g.stroke({ width: 1, color: 0x333333 });
-            
-            // Sail details (seams)
-            const seam1 = {x: 0, y: -mastHeight * 0.3};
-            const seam2 = {x: 20 * this.boat.sailHeight, y: -mastHeight * 0.5};
-            const rx1 = seam1.x * cos - seam1.y * sin;
-            const ry1 = seam1.x * sin + seam1.y * cos;
-            const rx2 = seam2.x * cos - seam2.y * sin;
-            const ry2 = seam2.x * sin + seam2.y * cos;
-            g.moveTo(rx1, ry1);
-            g.lineTo(rx2, ry2);
-            g.stroke({ width: 1, color: 0x000000, alpha: 0.2 });
-        }
-        
-        // Rudder indicator
-        const rudderAngleRad = -(boat.rudderAngle * Math.PI) / 180;
-        const rudderX = -boat.length / 2;
-        const rudderEndX = rudderX + (-8) * Math.cos(rudderAngleRad);
-        const rudderEndY = (-8) * Math.sin(rudderAngleRad);
-        g.moveTo(rudderX, 0);
-        g.lineTo(rudderEndX, rudderEndY);
-        g.stroke({ width: 2, color: 0x333333 });
-        
-        // Wake effect
-        if (boat.speed > 0.6) {
-            for (let i = 0; i < 3; i++) {
-                g.moveTo(-boat.length / 2 - i * 5, boat.width / 4);
-                g.lineTo(-boat.length / 2 - i * 10, boat.width / 2 + i * 3);
-                g.stroke({ width: 1, color: 0xffffff, alpha: 0.4 });
-                g.moveTo(-boat.length / 2 - i * 5, -boat.width / 4);
-                g.lineTo(-boat.length / 2 - i * 10, -boat.width / 2 - i * 3);
-                g.stroke({ width: 1, color: 0xffffff, alpha: 0.4 });
-            }
-        }
+        this.boatRenderer.draw(this.boat);
     }
     
     updateUI() {
