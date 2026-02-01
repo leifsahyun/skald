@@ -89,6 +89,15 @@ class ButtonGraphics {
         ];
 
         const anim = animations[Math.floor(Math.random() * animations.length)];
+
+        const draw = (() => {
+            // Redraw button with new position, maintaining hover state
+            if (this.isHovered) {
+                this.drawButton(this.COLOR_HOVER_OUTER, this.COLOR_HOVER_MIDDLE, this.COLOR_HOVER_INNER);
+            } else {
+                this.drawButton(this.COLOR_NORMAL_OUTER, this.COLOR_NORMAL_MIDDLE, this.COLOR_NORMAL_INNER);
+            }
+        }).bind(this);
         
         // Use GSAP to animate the inner circle with keyframes
         gsap.to(this, {
@@ -99,14 +108,7 @@ class ButtonGraphics {
                 easeEach: 'sine.out',
             },
             duration: 5,
-            onUpdate: () => {
-                // Redraw button with new position, maintaining hover state
-                if (this.isHovered) {
-                    this.drawButton(this.COLOR_HOVER_OUTER, this.COLOR_HOVER_MIDDLE, this.COLOR_HOVER_INNER);
-                } else {
-                    this.drawButton(this.COLOR_NORMAL_OUTER, this.COLOR_NORMAL_MIDDLE, this.COLOR_NORMAL_INNER);
-                }
-            },
+            onUpdate: draw,
             onComplete: () => {
                 // Do a new animation after a delay
                 setTimeout(this.setupAnimation, 2000 + Math.random() * 3000);
