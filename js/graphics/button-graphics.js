@@ -147,4 +147,12 @@ class ButtonGraphics {
             onComplete: onComplete
         });
     }
+    
+    hide() {
+        this.graphics.visible = false;
+    }
+    
+    show() {
+        this.graphics.visible = true;
+    }
 }

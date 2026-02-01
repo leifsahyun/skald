@@ -368,19 +368,24 @@ class SailingGame {
         const buttonGraphics = new PIXI.Graphics();
         
         // Initialize button renderer
-        return new ButtonGraphics(
+        const button = new ButtonGraphics(
             buttonGraphics, 
             this.coastlineContainer, 
             x,
             y,
             () => {
-                this.zoomToPoiBox(poiData);
+                this.zoomToPoiBox(poiData, button);
                 this.openPoiPanel(poiData);
             }
         );
+        
+        // Store reference to button in poiData for later access
+        poiData.button = button;
+        
+        return button;
     }
     
-    zoomToPoiBox(poiData) {
+    zoomToPoiBox(poiData, button) {
         if (!poiData.zoomBox || poiData.zoomBox.length !== 4) {
             return;
         }
@@ -411,14 +416,31 @@ class SailingGame {
         // Use the smaller scale to ensure the entire box fits
         const newScale = Math.min(scaleX, scaleY);
         
-        // Update the coastline scale factor
-        this.coastline.scaleFactor = newScale;
+        // Store the current values
+        const startScale = this.coastline.scaleFactor;
+        const startX = this.boat.x;
+        const startY = this.boat.y;
         
-        // Update the boat position to center on the zoomBox
-        // Note: In this game, the boat position serves as the camera target,
-        // so moving it updates what the player sees while the panel is open
-        this.boat.x = centerX;
-        this.boat.y = centerY;
+        // Use GSAP to tween the zoom over 0.5 seconds
+        gsap.to(this.coastline, {
+            scaleFactor: newScale,
+            duration: 0.5,
+            ease: "power2.inOut"
+        });
+        
+        // Tween the boat position (camera target) simultaneously
+        gsap.to(this.boat, {
+            x: centerX,
+            y: centerY,
+            duration: 0.5,
+            ease: "power2.inOut",
+            onComplete: () => {
+                // Hide the clicked POI button when zoom completes
+                if (button) {
+                    button.hide();
+                }
+            }
+        });
     }
     
     openPoiPanel(poiData) {
@@ -434,6 +456,11 @@ class SailingGame {
         if (this.textPanel) {
             this.textPanel.classList.toggle('open');
             this.isPanelOpen = this.textPanel.classList.contains('open');
+            
+            // If panel is being closed, show the POI button again
+            if (!this.isPanelOpen && this.currentPoi && this.currentPoi.button) {
+                this.currentPoi.button.show();
+            }
         }
     }
     
