@@ -26,8 +26,8 @@ class SailingGame {
             graphics: new Map(),
             poiInteractionRadius: 80, // Max distance for POI interaction in world units
             collisionAlphaThreshold: 200, // Alpha value above which pixels are considered solid
-            collisionPushStrength: 2.0, // How far to push boat away from collision
-            collisionSpeedDamping: 0.8 // Speed multiplier on collision (0.8 = 20% reduction)
+            collisionPushStrength: 0.5, // How far to push boat away from collision
+            collisionSpeedDamping: 0.6 // Speed multiplier on collision (0.8 = 20% reduction)
         };
         
         // Pre-calculate squared radius for distance comparisons (performance optimization)
@@ -335,9 +335,9 @@ class SailingGame {
     resolveCollision() {
         // Check multiple points around the boat using helper method
         const boatPoints = [
-            this.getBoatCollisionPoint(0, this.boat.length / 2), // bow
-            this.getBoatCollisionPoint(Math.PI / 2, this.boat.width / 2), // starboard
-            this.getBoatCollisionPoint(-Math.PI / 2, this.boat.width / 2), // port
+            this.getBoatCollisionPoint(0, this.boat.length / 4), // bow
+            this.getBoatCollisionPoint(Math.PI / 2, this.boat.width / 4), // starboard
+            this.getBoatCollisionPoint(-Math.PI / 2, this.boat.width / 4), // port
             { x: this.boat.x, y: this.boat.y } // center
         ];
         
