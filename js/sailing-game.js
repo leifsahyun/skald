@@ -221,7 +221,7 @@ class SailingGame {
         }
         
         const poiData = this.coastline.poiIndex.find(c => c.x === chunkX && c.y === chunkY);
-        if (!chunkData) {
+        if (!poiData) {
             return;
         }
 
