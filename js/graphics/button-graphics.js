@@ -8,6 +8,14 @@ class ButtonGraphics {
         this.buttonWorldY = buttonWorldY;
         this.onClickCallback = onClickCallback;
         
+        // Color constants
+        this.COLOR_NORMAL_OUTER = 0xffffff;
+        this.COLOR_NORMAL_MIDDLE = 0xffffff;
+        this.COLOR_NORMAL_INNER = 0x000000;
+        this.COLOR_HOVER_OUTER = 0xe0e0e0;
+        this.COLOR_HOVER_MIDDLE = 0xe0e0e0;
+        this.COLOR_HOVER_INNER = 0x333333;
+        
         // Animation state for inner circle
         this.innerCircleOffsetX = 0;
         this.innerCircleOffsetY = 0;
@@ -17,6 +25,7 @@ class ButtonGraphics {
         this.nextAnimationTime = this.getRandomAnimationDelay();
         this.isAnimating = false;
         this.maxOffset = 3; // Maximum distance inner circle can move from center
+        this.animationSpeed = 0.005; // Speed per millisecond for frame-rate independence
         
         // Track hover state
         this.isHovered = false;
@@ -42,7 +51,7 @@ class ButtonGraphics {
     
     setupButton() {
         // Draw initial button state
-        this.drawButton(0xffffff, 0xffffff, 0x000000);
+        this.drawButton(this.COLOR_NORMAL_OUTER, this.COLOR_NORMAL_MIDDLE, this.COLOR_NORMAL_INNER);
         
         // Add button directly to coastlineContainer
         this.coastlineContainer.addChild(this.graphics);
@@ -54,12 +63,12 @@ class ButtonGraphics {
         // Add hover effect
         this.graphics.on('pointerover', () => {
             this.isHovered = true;
-            this.drawButton(0xe0e0e0, 0xe0e0e0, 0x333333);
+            this.drawButton(this.COLOR_HOVER_OUTER, this.COLOR_HOVER_MIDDLE, this.COLOR_HOVER_INNER);
         });
         
         this.graphics.on('pointerout', () => {
             this.isHovered = false;
-            this.drawButton(0xffffff, 0xffffff, 0x000000);
+            this.drawButton(this.COLOR_NORMAL_OUTER, this.COLOR_NORMAL_MIDDLE, this.COLOR_NORMAL_INNER);
         });
         
         // Add click handler
@@ -97,7 +106,6 @@ class ButtonGraphics {
         
         // Animate towards target
         if (this.isAnimating) {
-            const speed = 0.1; // Smooth movement speed
             const dx = this.innerCircleTargetX - this.innerCircleOffsetX;
             const dy = this.innerCircleTargetY - this.innerCircleOffsetY;
             const distance = Math.sqrt(dx * dx + dy * dy);
@@ -110,16 +118,18 @@ class ButtonGraphics {
                 this.nextAnimationTime = this.getRandomAnimationDelay();
                 this.animationTimer = 0;
             } else {
-                // Move towards target
-                this.innerCircleOffsetX += dx * speed;
-                this.innerCircleOffsetY += dy * speed;
+                // Move towards target with frame-rate independent speed
+                const speed = this.animationSpeed * deltaTime;
+                const moveAmount = Math.min(speed * distance, distance);
+                this.innerCircleOffsetX += (dx / distance) * moveAmount;
+                this.innerCircleOffsetY += (dy / distance) * moveAmount;
             }
             
             // Redraw button with new position, maintaining hover state
             if (this.isHovered) {
-                this.drawButton(0xe0e0e0, 0xe0e0e0, 0x333333);
+                this.drawButton(this.COLOR_HOVER_OUTER, this.COLOR_HOVER_MIDDLE, this.COLOR_HOVER_INNER);
             } else {
-                this.drawButton(0xffffff, 0xffffff, 0x000000);
+                this.drawButton(this.COLOR_NORMAL_OUTER, this.COLOR_NORMAL_MIDDLE, this.COLOR_NORMAL_INNER);
             }
         }
     }
