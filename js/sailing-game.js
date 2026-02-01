@@ -410,8 +410,8 @@ class SailingGame {
         const boxHeight = maxY - minY;
         
         // Calculate the center of the zoomBox
-        const centerX = (minX + maxX) / 2 - this.boat.x;
-        const centerY = (minY + maxY) / 2 - this.boat.y;
+        const centerX = (minX + maxX) / 2 - this.boat.x * this.coastline.scaleFactor;
+        const centerY = (minY + maxY) / 2 - this.boat.y * this.coastline.scaleFactor;
         
         // Calculate the scale needed to fit the zoomBox in the viewport
         const scaleX = this.width / boxWidth / this.coastline.scaleFactor;
