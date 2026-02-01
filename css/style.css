@@ -323,7 +323,7 @@ footer {
     #gameCanvas {
         max-width: 100%;
         height: auto;
-        aspect-ratio: 3 / 2;
+        aspect-ratio: 2;
     }
     
     .game-info {
