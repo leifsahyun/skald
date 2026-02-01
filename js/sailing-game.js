@@ -210,7 +210,7 @@ class SailingGame {
                 this.coastline.chunks.delete(key);
             });
 
-        loadPois(chunkX, chunkY);
+        this.loadPois(chunkX, chunkY);
     }
 
     loadPois(chunkX, chunkY) {
@@ -367,7 +367,7 @@ class SailingGame {
         this.buttonWorldX = this.boat.x - 50;
         this.buttonWorldY = this.boat.y - 50;
 
-        this.buttonRenderer = createPoiButton(this.buttonWorldX, this.buttonWorldY);
+        this.buttonRenderer = this.createPoiButton(this.buttonWorldX, this.buttonWorldY);
     }
     
     createPoiButton(x,y) {
@@ -588,7 +588,7 @@ class SailingGame {
             for (const poi of chunk.pois) {
                 if (poi.renderer)
                     continue;
-                poi.renderer = createPoiButton(poi.x * this.coastline.chunkPixelSize / this.coastline.chunkSize, -poi.y * this.coastline.chunkPixelSize / this.coastline.chunkSize);
+                poi.renderer = this.createPoiButton(poi.x * this.coastline.chunkPixelSize / this.coastline.chunkSize, -poi.y * this.coastline.chunkPixelSize / this.coastline.chunkSize);
             }
         }
     }
