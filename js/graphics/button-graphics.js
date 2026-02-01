@@ -143,7 +143,7 @@ class ButtonGraphics {
                 easeEach: 'sine.out',
             },
             duration: 3,
-            onUpdate: this.draw,
+            onUpdate: this.draw.bind(this),
             onComplete: onComplete
         });
     }
