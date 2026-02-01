@@ -1,0 +1,20 @@
+[
+	{
+		"x":5.71,
+		"y":58.98,
+		"zoomBox":[
+			5.7,
+			59.93,
+			5.76,
+			59.99
+		],
+		"name":"Stavanger",
+		"characters":[
+			"jarl sulke"
+		],
+		"actions":[
+			"trade"
+		]
+	}
+
+]
