@@ -22,6 +22,9 @@ class SailingGame {
             poiInteractionRadius: 500, // Max distance for POI interaction in world units
         };
         
+        // Pre-calculate squared radius for distance comparisons (performance optimization)
+        this.coastline.poiInteractionRadiusSquared = this.coastline.poiInteractionRadius * this.coastline.poiInteractionRadius;
+        
         // Boat state
         this.boat = {
             x: 5.6 * this.coastline.chunkPixelSize / this.coastline.chunkSize,
@@ -693,10 +696,9 @@ class SailingGame {
                 const dx = poiWorldX - this.boat.x;
                 const dy = poiWorldY - this.boat.y;
                 const distanceSquared = dx * dx + dy * dy;
-                const radiusSquared = this.coastline.poiInteractionRadius * this.coastline.poiInteractionRadius;
                 
                 // Update button interactivity based on distance (avoiding sqrt for performance)
-                const isInRange = distanceSquared <= radiusSquared;
+                const isInRange = distanceSquared <= this.coastline.poiInteractionRadiusSquared;
                 poi.renderer.setInteractive(isInRange);
             }
         }
