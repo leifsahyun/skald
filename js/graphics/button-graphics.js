@@ -106,8 +106,4 @@ class ButtonGraphics {
             }
         });
     }
-    
-    update(deltaTime) {
-        // No longer needed - GSAP handles animation updates
-    }
 }
