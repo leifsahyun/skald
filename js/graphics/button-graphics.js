@@ -73,29 +73,33 @@ class ButtonGraphics {
     }
     
     setupAnimation() {
-        // Generate random keyframe positions for smooth organic movement
-        const generateKeyframes = () => {
-            const keyframes = [0]; // Start at center
-            for (let i = 0; i < 4; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * this.maxOffset;
-                keyframes.push(Math.cos(angle) * distance);
-            }
-            keyframes.push(0); // Return to center
-            return keyframes;
-        };
+        const animations = [
+            [
+                [0,0],[0,4],[0,0],[0,-4],[0,0]
+            ],
+            [
+                [0,0],[4,0],[0,0],[-4,0],[0,0]
+            ],
+            [
+                [0,0],[2.8,2.8],[2.8,2.8],[2.8,-2.8],[2.8,-2.8],[4,0],[2.8,2.8],[0,4],[-2.8,2.8],[-4,0],[-2.8,-2.8],[0,-4],[0,0]
+            ],
+            [
+                [0,0],[-2.8,-2.8],[-2.8,-2.8],[2.8,-2.8],[2.8,-2.8],[0,-4],[-2.8,-2.8],[-4,0],[-2.8,2.8],[0,4],[2.8,2.8],[4,0],[0,0]
+            ],
+        ];
+
+        const anim = animations[Math.floor(Math.random() * animations.length)];
         
         // Use GSAP to animate the inner circle with keyframes
         gsap.to(this, {
             keyframes: {
-                innerCircleOffsetX: generateKeyframes(),
-                innerCircleOffsetY: generateKeyframes(),
+                innerCircleOffsetX: anim.map((a) => a[0]),
+                innerCircleOffsetY: anim.map((a) => a[1]),
                 ease: 'none',
                 easeEach: 'power2.inOut',
             },
             duration: 5,
             repeat: -1,
-            yoyo: true,
             onUpdate: () => {
                 // Redraw button with new position, maintaining hover state
                 if (this.isHovered) {
@@ -103,6 +107,10 @@ class ButtonGraphics {
                 } else {
                     this.drawButton(this.COLOR_NORMAL_OUTER, this.COLOR_NORMAL_MIDDLE, this.COLOR_NORMAL_INNER);
                 }
+            },
+            onComplete: () => {
+                // Do a new animation after a delay
+                setTimeout(this.setupAnimation, 2000 + Math.random() * 3000);
             }
         });
     }
