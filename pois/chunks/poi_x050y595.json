@@ -1,0 +1,17 @@
+[
+	{
+		"x":5.14,
+		"y":59.42,
+		"zoomBox":[
+			5.13,
+			59.41,
+			5.15,
+			59.43
+		],
+		"name":"Lighthouse",
+		"characters":[
+			"lighthouse"
+		]
+	}
+
+]
