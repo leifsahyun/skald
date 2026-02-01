@@ -483,12 +483,14 @@ class SailingGame {
             // Handle subtitle (add or remove)
             let subtitleElement = this.textPanel.querySelector('.panel-subtitle');
             if (subtitle) {
-                if (!subtitleElement) {
+                if (!subtitleElement && titleElement.parentNode) {
                     subtitleElement = document.createElement('div');
                     subtitleElement.className = 'panel-subtitle';
                     titleElement.parentNode.insertBefore(subtitleElement, titleElement.nextSibling);
                 }
-                subtitleElement.textContent = this.toTitleCase(subtitle);
+                if (subtitleElement) {
+                    subtitleElement.textContent = this.toTitleCase(subtitle);
+                }
             } else if (subtitleElement) {
                 subtitleElement.remove();
             }
