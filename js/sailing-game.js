@@ -390,12 +390,14 @@ class SailingGame {
             return;
         }
         
-        // Store the original zoom state before changing it
-        this.originalZoomState = {
-            scaleFactor: this.coastline.scaleFactor,
-            boatX: this.boat.x,
-            boatY: this.boat.y
-        };
+        // Store the original zoom state before changing it (only if not already stored)
+        if (!this.originalZoomState) {
+            this.originalZoomState = {
+                scaleFactor: this.coastline.scaleFactor,
+                boatX: this.boat.x,
+                boatY: this.boat.y
+            };
+        }
         
         // Convert zoomBox coordinates from lat/lon to pixels
         // zoomBox format: [minLon, minLat, maxLon, maxLat]
@@ -461,7 +463,11 @@ class SailingGame {
             x: this.originalZoomState.boatX,
             y: this.originalZoomState.boatY,
             duration: 0.5,
-            ease: "power2.inOut"
+            ease: "power2.inOut",
+            onComplete: () => {
+                // Clear the stored state after restoration
+                this.originalZoomState = null;
+            }
         });
     }
     
