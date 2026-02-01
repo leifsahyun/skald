@@ -799,10 +799,10 @@ class SailingGame {
         const rand = Math.random(); // 0 to 1
         const centered = rand - 0.5; // -0.5 to 0.5
         // Use power of 3 to create strong bias toward center
-        const biased = Math.sign(centered) * Math.pow(Math.abs(centered) * 2, 3) / 2;
+        const biased = Math.sign(centered) * Math.pow(Math.abs(centered) * 2, 3);
         
-        // Map to range [-π/2, π/2], biased toward 0 (east)
-        const angle = biased * Math.PI;
+        // Map to range [-2π/3, π2/3], biased toward 0 (east)
+        const angle = biased * 2 * Math.PI / 3;
         
         // Normalize to [0, 2π]
         return (angle + 2 * Math.PI) % (2 * Math.PI);
@@ -810,7 +810,9 @@ class SailingGame {
     
     updateWind() {
         let angleDiff = this.wind.targetAngle - this.wind.angle;
-        angleDiff = ((angleDiff + Math.PI) % (2 * Math.PI)) - Math.PI;
+        angleDiff = (angleDiff + 2 * Math.PI) % (2 * Math.PI);
+        if (angleDiff > Math.PI)
+            angleDiff = angleDiff - 2 * Math.PI;
         
         if (Math.abs(angleDiff) > this.wind.targetThreshold) {
             this.wind.angle += Math.sign(angleDiff) * this.wind.changeRate;
