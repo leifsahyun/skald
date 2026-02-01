@@ -119,6 +119,14 @@ class SailingGame {
         this.boatRenderer = new BoatGraphics(this.boatGraphics, this.boatContainer);
         this.windRenderer = new WindGraphics(this.windGraphics, this.windContainer);
         
+        // Initialize poetry interface with callback to reopen panel
+        this.poetryInterface = new PoetryInterface(this.app, () => {
+            // When poetry interface closes, reopen the text panel
+            if (this.currentPoi) {
+                this.openPoiPanel(this.currentPoi);
+            }
+        });
+        
         // Cache reference to text panel element
         this.textPanel = document.getElementById('textPanel');
         this.isPanelOpen = false;
@@ -670,6 +678,17 @@ class SailingGame {
     }
     
     showDetail(name) {
+        // Check if this is a character - if so, show poetry interface
+        if (this.currentPoi && this.currentPoi.characters && 
+            this.currentPoi.characters.some(char => char.toLowerCase() === name.toLowerCase())) {
+            // Hide the text panel and show poetry interface
+            this.textPanel.classList.remove('open');
+            this.isPanelOpen = false;
+            this.poetryInterface.show();
+            return;
+        }
+        
+        // Otherwise, show regular detail view for actions
         // Update the panel to show detail view with POI name as title and character/action as subtitle
         if (this.currentPoi) {
             this.updatePanelContent(this.currentPoi, name);
