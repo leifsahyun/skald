@@ -6,6 +6,11 @@ class SailingGame {
         this.canvas = canvas;
         this.width = canvas.width;
         this.height = canvas.height;
+        this.globalTransform = {
+            scale: 1,
+            x: this.width / 2,
+            y: this.height / 2
+        };
 
         // Coastline configuration
         this.coastline = {
@@ -85,11 +90,16 @@ class SailingGame {
         this.coastlineContainer = new PIXI.Container();
         this.boatContainer = new PIXI.Container();
         this.windContainer = new PIXI.Container();
-        
+        this.worldContainer = new PIXI.Container();
+
+        this.worldContainer.addChild(this.coastlineContainer);
+        this.worldContainer.addChild(this.boatContainer);
         this.app.stage.addChild(this.oceanContainer);
-        this.app.stage.addChild(this.coastlineContainer);
-        this.app.stage.addChild(this.boatContainer);
+        this.app.stage.addChild(this.worldContainer);
         this.app.stage.addChild(this.windContainer);
+
+        this.worldContainer.x = this.width / 2;
+        this.worldContainer.y = this.height / 2;
         
         // Create graphics objects
         this.oceanGraphics = new PIXI.Graphics();
@@ -97,8 +107,6 @@ class SailingGame {
         
         this.boatGraphics = new PIXI.Graphics();
         this.boatContainer.addChild(this.boatGraphics);
-        this.boatContainer.x = this.width / 2;
-        this.boatContainer.y = this.height / 2;
         
         this.windGraphics = new PIXI.Graphics();
         this.windContainer.addChild(this.windGraphics);
@@ -371,13 +379,75 @@ class SailingGame {
         const buttonGraphics = new PIXI.Graphics();
         
         // Initialize button renderer
-        return new ButtonGraphics(
+        const button = new ButtonGraphics(
             buttonGraphics, 
             this.coastlineContainer, 
             x,
             y,
-            () => this.openPoiPanel(poiData)
+            () => {
+                this.zoomToPoiBox(poiData, button);
+                this.openPoiPanel(poiData);
+            }
         );
+        
+        // Store reference to button in poiData for later access
+        poiData.button = button;
+        
+        return button;
+    }
+    
+    zoomToPoiBox(poiData, button) {
+        if (!poiData.zoomBox || poiData.zoomBox.length !== 4) {
+            return;
+        }
+        
+        // Convert zoomBox coordinates from lat/lon to pixels
+        // zoomBox format: [minLon, minLat, maxLon, maxLat]
+        const [minLon, minLat, maxLon, maxLat] = poiData.zoomBox;
+        
+        const minX = minLon * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+        const minY = -maxLat * this.coastline.chunkPixelSize / this.coastline.chunkSize; // Note: Y is inverted
+        const maxX = maxLon * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+        const maxY = -minLat * this.coastline.chunkPixelSize / this.coastline.chunkSize; // Note: Y is inverted
+        
+        // Calculate the width and height of the zoomBox in pixels
+        const boxWidth = maxX - minX;
+        const boxHeight = maxY - minY;
+        
+        // Calculate the scale needed to fit the zoomBox in the viewport
+        const scaleX = this.width / boxWidth / this.coastline.scaleFactor;
+        const scaleY = this.height / boxHeight  / this.coastline.scaleFactor;
+        
+        // Use the smaller scale to ensure the entire box fits
+        const newScale = Math.min(scaleX, scaleY);
+
+        // Calculate the center of the zoomBox
+        const centerX = this.width / 2 + (this.boat.x - (minX + maxX) / 2) * newScale * this.coastline.scaleFactor;
+        const centerY = this.height / 2 + (this.boat.y - (minY + maxY) / 2) * newScale * this.coastline.scaleFactor;
+        
+        // Use GSAP to tween the zoom over 0.5 seconds
+        this.globalZoom(newScale,centerX,centerY).eventCallback("onComplete", () => {
+            button.hide();
+        });
+    }
+
+    globalZoom(scale,x,y) {
+        return gsap.to(this.globalTransform, {
+            scale: scale,
+            x: x,
+            y: y,
+            duration: 0.5,
+            ease: "power2.inOut",
+            onUpdate: () => {
+                this.worldContainer.x = this.globalTransform.x;
+                this.worldContainer.y = this.globalTransform.y;
+                this.worldContainer.scale.set(this.globalTransform.scale);
+            }
+        });
+    }
+    
+    restoreOriginalZoom() {
+        this.globalZoom(1,this.width/2,this.height/2);
     }
     
     openPoiPanel(poiData) {
@@ -393,6 +463,14 @@ class SailingGame {
         if (this.textPanel) {
             this.textPanel.classList.toggle('open');
             this.isPanelOpen = this.textPanel.classList.contains('open');
+            
+            // If panel is being closed, restore original zoom and show the POI button
+            if (!this.isPanelOpen) {
+                this.restoreOriginalZoom();
+                if (this.currentPoi && this.currentPoi.button) {
+                    this.currentPoi.button.show();
+                }
+            }
         }
     }
     
@@ -653,8 +731,8 @@ class SailingGame {
         const scale = this.coastline.scaleFactor;
         
         // Update coastline container position
-        this.coastlineContainer.x = this.width / 2 - this.boat.x * scale;
-        this.coastlineContainer.y = this.height / 2 - this.boat.y * scale;
+        this.coastlineContainer.x = -this.boat.x * scale;
+        this.coastlineContainer.y = -this.boat.y * scale;
         this.coastlineContainer.scale.set(scale);
         
         // Draw each loaded chunk
