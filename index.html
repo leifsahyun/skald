@@ -85,6 +85,13 @@
             document.write('<script src="js/libs/pixi.min.js"><\/script>');
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script>
+        // Fallback to local copy if CDN fails
+        if (typeof gsap === 'undefined') {
+            document.write('<script src="js/libs/gsap.min.js"><\/script>');
+        }
+    </script>
     <script src="js/script.js"></script>
     <script src="js/graphics/ocean-graphics.js"></script>
     <script src="js/graphics/boat-graphics.js"></script>
