@@ -122,7 +122,9 @@ class ButtonGraphics {
 
         const onComplete = () => {
             this.blink = Date.now();
+            draw();
             // Do a new animation after a delay
+            setTimeout(draw.bind(this), this.blinkTime);
             setTimeout(this.setupAnimation.bind(this), 3000 + Math.random() * 7000);
         };
         
