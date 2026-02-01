@@ -421,11 +421,13 @@ class SailingGame {
         const newScale = Math.min(scaleX, scaleY);
         
         // Use GSAP to tween the zoom over 0.5 seconds
-        this.globalZoom(newScale,centerX,centerY);
+        this.globalZoom(newScale,centerX,centerY).eventCallback("onComplete", () => {
+            button.hide();
+        });
     }
 
     globalZoom(scale,x,y) {
-        gsap.to(this.globalTransform, {
+        return gsap.to(this.globalTransform, {
             scale: scale,
             x: x,
             y: y,
