@@ -19,7 +19,7 @@ class SailingGame {
             indexLoaded: false,
             poiIndexLoaded: false,
             graphics: new Map(),
-            poiInteractionRadius: 100, // Max distance for POI interaction in world units
+            poiInteractionRadius: 80, // Max distance for POI interaction in world units
         };
         
         // Pre-calculate squared radius for distance comparisons (performance optimization)
