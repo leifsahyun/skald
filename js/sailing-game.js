@@ -107,9 +107,10 @@ class SailingGame {
         // Cache reference to text panel element
         this.textPanel = document.getElementById('textPanel');
         this.isPanelOpen = false;
+        this.currentPoi = null;
         
         this.setupControls();
-        this.setupCloseButton()
+        this.setupCloseButton();
         this.loadChunkIndex();
         this.loadPoiIndex();
         this.gameLoop();
@@ -413,7 +414,7 @@ class SailingGame {
                         <span class="panel-icon">${icon}</span>
                         <span class="panel-text">${this.toTitleCase(action)}</span>
                     `;
-                    actionRow.addEventListener('click', () => this.showDetail(action, 'action'));
+                    actionRow.addEventListener('click', () => this.showDetail(action));
                     contentElement.appendChild(actionRow);
                 });
             }
@@ -431,7 +432,7 @@ class SailingGame {
                     characterRow.innerHTML = `
                         <span class="panel-text">${this.toTitleCase(character)}</span>
                     `;
-                    characterRow.addEventListener('click', () => this.showDetail(character, 'character'));
+                    characterRow.addEventListener('click', () => this.showDetail(character));
                     contentElement.appendChild(characterRow);
                 });
             }
@@ -448,10 +449,10 @@ class SailingGame {
             'talk': '💬',
             'explore': '🔍'
         };
-        return iconMap[action.toLowerCase()] || '⚔️';
+        return iconMap[action.toLowerCase()] || '📍';
     }
     
-    showDetail(name, type) {
+    showDetail(name) {
         // Update the panel to show detail view
         const titleElement = this.textPanel.querySelector('h2');
         if (titleElement) {
@@ -460,24 +461,30 @@ class SailingGame {
         
         const contentElement = this.textPanel.querySelector('.panel-content');
         if (contentElement) {
-            contentElement.innerHTML = `
-                <button class="back-btn">← Back</button>
-                <div class="detail-content">
-                    <!-- Blank interface for ${type} -->
-                </div>
-            `;
+            contentElement.innerHTML = '';
             
-            // Add back button handler
-            const backBtn = contentElement.querySelector('.back-btn');
-            if (backBtn) {
-                backBtn.addEventListener('click', () => this.updatePanelContent(this.currentPoi));
-            }
+            // Create back button
+            const backBtn = document.createElement('button');
+            backBtn.className = 'back-btn';
+            backBtn.textContent = '← Back';
+            backBtn.addEventListener('click', () => {
+                if (this.currentPoi) {
+                    this.updatePanelContent(this.currentPoi);
+                }
+            });
+            contentElement.appendChild(backBtn);
+            
+            // Create detail content area
+            const detailDiv = document.createElement('div');
+            detailDiv.className = 'detail-content';
+            contentElement.appendChild(detailDiv);
         }
     }
     
     toTitleCase(str) {
+        if (!str) return '';
         return str.replace(/\w\S*/g, (txt) => {
-            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
         });
     }
     
