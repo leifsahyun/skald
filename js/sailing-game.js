@@ -6,6 +6,11 @@ class SailingGame {
         this.canvas = canvas;
         this.width = canvas.width;
         this.height = canvas.height;
+        this.globalTransform = {
+            scale: 1,
+            x: 0,
+            y: 0
+        };
 
         // Coastline configuration
         this.coastline = {
@@ -19,7 +24,6 @@ class SailingGame {
             indexLoaded: false,
             poiIndexLoaded: false,
             graphics: new Map(),
-            zoomBoxPadding: 0.8, // Padding factor for POI zoom (80% of viewport)
         };
         
         // Boat state
@@ -82,10 +86,12 @@ class SailingGame {
         this.coastlineContainer = new PIXI.Container();
         this.boatContainer = new PIXI.Container();
         this.windContainer = new PIXI.Container();
-        
-        this.app.stage.addChild(this.oceanContainer);
-        this.app.stage.addChild(this.coastlineContainer);
-        this.app.stage.addChild(this.boatContainer);
+        this.worldContainer = new PIXI.Container();
+
+        this.worldContainer.addChild(this.oceanContainer);
+        this.worldContainer.addChild(this.coastlineContainer);
+        this.worldContainer.addChild(this.boatContainer);
+        this.app.stage.addChild(this.worldContainer);
         this.app.stage.addChild(this.windContainer);
         
         // Create graphics objects
@@ -390,15 +396,6 @@ class SailingGame {
             return;
         }
         
-        // Store the original zoom state before changing it (only if not already stored)
-        if (!this.originalZoomState) {
-            this.originalZoomState = {
-                scaleFactor: this.coastline.scaleFactor,
-                boatX: this.boat.x,
-                boatY: this.boat.y
-            };
-        }
-        
         // Convert zoomBox coordinates from lat/lon to pixels
         // zoomBox format: [minLon, minLat, maxLon, maxLat]
         const [minLon, minLat, maxLon, maxLat] = poiData.zoomBox;
@@ -413,62 +410,38 @@ class SailingGame {
         const boxHeight = maxY - minY;
         
         // Calculate the center of the zoomBox
-        const centerX = (minX + maxX) / 2;
-        const centerY = (minY + maxY) / 2;
+        const centerX = (minX + maxX) / 2 - this.boat.x;
+        const centerY = (minY + maxY) / 2 - this.boat.y;
         
         // Calculate the scale needed to fit the zoomBox in the viewport
-        // Leave some padding (configured in coastline.zoomBoxPadding)
-        const padding = this.coastline.zoomBoxPadding;
-        const scaleX = (this.width * padding) / boxWidth;
-        const scaleY = (this.height * padding) / boxHeight;
+        const scaleX = this.width / boxWidth / this.coastline.scaleFactor;
+        const scaleY = this.height / boxHeight  / this.coastline.scaleFactor;
         
         // Use the smaller scale to ensure the entire box fits
         const newScale = Math.min(scaleX, scaleY);
         
         // Use GSAP to tween the zoom over 0.5 seconds
-        gsap.to(this.coastline, {
-            scaleFactor: newScale,
-            duration: 0.5,
-            ease: "power2.inOut"
-        });
-        
-        // Tween the boat position (camera target) simultaneously
-        gsap.to(this.boat, {
-            x: centerX,
-            y: centerY,
+        this.globalZoom(newScale,centerX,centerY);
+    }
+
+    globalZoom(scale,x,y) {
+        gsap.to(this.globalTransform, {
+            scale: scale,
+            x: x,
+            y: y,
             duration: 0.5,
             ease: "power2.inOut",
-            onComplete: () => {
-                // Hide the clicked POI button when zoom completes
-                if (button) {
-                    button.hide();
-                }
+            onUpdate: () => {
+                const transform = new Matrix()
+                    .scale(this.globalTransform.scale)
+                    .translate(this.globalTransform.x, this.globalTransform.y);
+                this.worldContainer.setTransform(transform);
             }
         });
     }
     
     restoreOriginalZoom() {
-        if (!this.originalZoomState) {
-            return;
-        }
-        
-        // Tween back to the original zoom state
-        gsap.to(this.coastline, {
-            scaleFactor: this.originalZoomState.scaleFactor,
-            duration: 0.5,
-            ease: "power2.inOut"
-        });
-        
-        gsap.to(this.boat, {
-            x: this.originalZoomState.boatX,
-            y: this.originalZoomState.boatY,
-            duration: 0.5,
-            ease: "power2.inOut",
-            onComplete: () => {
-                // Clear the stored state after restoration
-                this.originalZoomState = null;
-            }
-        });
+        this.globalZoom(1,0,0);
     }
     
     openPoiPanel(poiData) {
