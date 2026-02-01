@@ -12,11 +12,13 @@ class SailingGame {
             scaleFactor: 2.0,
             chunks: new Map(),
             chunkIndex: [],
+            poiIndex: [],
             chunkPixelSize: 1800,
             chunkSize: 0.5,
             loadDistance: 2,
             indexLoaded: false,
-            graphics: new Map()
+            poiIndexLoaded: false,
+            graphics: new Map(),
         };
         
         // Boat state
@@ -110,6 +112,7 @@ class SailingGame {
         this.setupCloseButton();
         this.createCircularButton();
         this.loadChunkIndex();
+        this.loadPoiIndex();
         this.gameLoop();
     }
     
@@ -135,6 +138,31 @@ class SailingGame {
             })
             .catch(error => {
                 console.error('Failed to load chunk index:', error);
+            });
+    }
+
+    loadPoiIndex() {
+        fetch('pois/chunks/index.csv')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(csvText => {
+                const lines = csvText.trim().split('\n');
+                this.coastline.poiIndex = lines.map(line => {
+                    const [x, y, fileName] = line.split(',');
+                    return {
+                        x: parseFloat(x),
+                        y: parseFloat(y),
+                        fileName: fileName.trim()
+                    };
+                });
+                this.coastline.poiIndexLoaded = true;
+            })
+            .catch(error => {
+                console.error('Failed to load POI index:', error);
             });
     }
     
@@ -165,7 +193,8 @@ class SailingGame {
             x: chunkX,
             y: chunkY,
             texture: null,
-            loaded: false
+            loaded: false,
+            pois: []
         });
         
         PIXI.Assets.load(`map/${chunkData.fileName}`)
@@ -179,6 +208,35 @@ class SailingGame {
             .catch(error => {
                 console.error(`Failed to load chunk ${key} from ${chunkData.fileName}:`, error);
                 this.coastline.chunks.delete(key);
+            });
+
+        loadPois(chunkX, chunkY);
+    }
+
+    loadPois(chunkX, chunkY) {
+        const key = this.getChunkKey(chunkX, chunkY);
+        
+        if (!this.coastline.chunks.has(key)) {
+            return;
+        }
+        
+        const poiData = this.coastline.poiIndex.find(c => c.x === chunkX && c.y === chunkY);
+        if (!chunkData) {
+            return;
+        }
+
+        fetch(`map/${poiData.fileName}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(pois => {
+                this.coastline.chunks.get(key).pois = pois;
+            })
+            .catch(error => {
+                console.error('Failed to load POIs:', error);
             });
     }
     
@@ -303,21 +361,25 @@ class SailingGame {
         addButtonListeners('forwardBtn', 'button', 'forward');
         addButtonListeners('sailBtn', 'button', 'sail');
     }
-    
+
     createCircularButton() {
         // Button position in world coordinates (near the boat starting position)
         this.buttonWorldX = this.boat.x - 50;
         this.buttonWorldY = this.boat.y - 50;
-        
-        // Create the circular button graphics directly in coastlineContainer
-        this.buttonGraphics = new PIXI.Graphics();
+
+        this.buttonRenderer = createPoiButton(this.buttonWorldX, this.buttonWorldY);
+    }
+    
+    createPoiButton(x,y) {
+        // Create the button graphics directly in coastlineContainer
+        const buttonGraphics = new PIXI.Graphics();
         
         // Initialize button renderer
-        this.buttonRenderer = new ButtonGraphics(
-            this.buttonGraphics, 
+        return new ButtonGraphics(
+            buttonGraphics, 
             this.coastlineContainer, 
-            this.buttonWorldX, 
-            this.buttonWorldY,
+            x,
+            y,
             () => this.toggleTextPanel()
         );
     }
@@ -510,17 +572,24 @@ class SailingGame {
                 const chunkContainer = new PIXI.Container();
                 const g = new PIXI.Graphics();
 
+                const chunkX = chunk.x * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+                const chunkY = -chunk.y * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+                g.x = chunkX;
+                g.y = chunkY;
+
                 g.texture(chunk.texture);
 
                 chunkContainer.addChild(g);
                 this.coastlineContainer.addChild(chunkContainer);
                 this.coastline.graphics.set(key, chunkContainer);
             }
-            
-            const chunkX = chunk.x * this.coastline.chunkPixelSize / this.coastline.chunkSize;
-            const chunkY = -chunk.y * this.coastline.chunkPixelSize / this.coastline.chunkSize;
-            this.coastline.graphics.get(key).x = chunkX;
-            this.coastline.graphics.get(key).y = chunkY;
+
+            // Add POIs
+            for (const poi of chunk.pois) {
+                if (poi.renderer)
+                    continue;
+                poi.renderer = createPoiButton(poi.x * this.coastline.chunkPixelSize / this.coastline.chunkSize, -poi.y * this.coastline.chunkPixelSize / this.coastline.chunkSize);
+            }
         }
     }
     
