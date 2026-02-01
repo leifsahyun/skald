@@ -8,8 +8,8 @@ class SailingGame {
         this.height = canvas.height;
         this.globalTransform = {
             scale: 1,
-            x: 0,
-            y: 0
+            x: this.width / 2,
+            y: this.height / 2
         };
 
         // Coastline configuration
@@ -93,6 +93,9 @@ class SailingGame {
         this.worldContainer.addChild(this.boatContainer);
         this.app.stage.addChild(this.worldContainer);
         this.app.stage.addChild(this.windContainer);
+
+        this.worldContainer.x = this.width / 2;
+        this.worldContainer.y = this.height / 2;
         
         // Create graphics objects
         this.oceanGraphics = new PIXI.Graphics();
@@ -100,8 +103,6 @@ class SailingGame {
         
         this.boatGraphics = new PIXI.Graphics();
         this.boatContainer.addChild(this.boatGraphics);
-        this.boatContainer.x = this.width / 2;
-        this.boatContainer.y = this.height / 2;
         
         this.windGraphics = new PIXI.Graphics();
         this.windContainer.addChild(this.windGraphics);
@@ -410,8 +411,8 @@ class SailingGame {
         const boxHeight = maxY - minY;
         
         // Calculate the center of the zoomBox
-        const centerX = (minX + maxX) / 2 - this.boat.x * this.coastline.scaleFactor;
-        const centerY = (minY + maxY) / 2 - this.boat.y * this.coastline.scaleFactor;
+        const centerX = this.width / 2 - (minX + maxX) / 2 + this.boat.x * this.coastline.scaleFactor;
+        const centerY = this.height / 2 - (minY + maxY) / 2 + this.boat.y * this.coastline.scaleFactor;
         
         // Calculate the scale needed to fit the zoomBox in the viewport
         const scaleX = this.width / boxWidth / this.coastline.scaleFactor;
@@ -442,7 +443,7 @@ class SailingGame {
     }
     
     restoreOriginalZoom() {
-        this.globalZoom(1,0,0);
+        this.globalZoom(1,this.width/2,this.height/2);
     }
     
     openPoiPanel(poiData) {
@@ -726,8 +727,8 @@ class SailingGame {
         const scale = this.coastline.scaleFactor;
         
         // Update coastline container position
-        this.coastlineContainer.x = this.width / 2 - this.boat.x * scale;
-        this.coastlineContainer.y = this.height / 2 - this.boat.y * scale;
+        this.coastlineContainer.x = -this.boat.x * scale;
+        this.coastlineContainer.y = -this.boat.y * scale;
         this.coastlineContainer.scale.set(scale);
         
         // Draw each loaded chunk
