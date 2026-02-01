@@ -697,9 +697,11 @@ class SailingGame {
                 const dy = poiWorldY - this.boat.y;
                 const distanceSquared = dx * dx + dy * dy;
                 
-                // Update button interactivity based on distance (avoiding sqrt for performance)
+                // Update button interactivity only when state changes (avoiding sqrt for performance)
                 const isInRange = distanceSquared <= this.coastline.poiInteractionRadiusSquared;
-                poi.renderer.setInteractive(isInRange);
+                if (poi.renderer.isInteractive !== isInRange) {
+                    poi.renderer.setInteractive(isInRange);
+                }
             }
         }
     }
