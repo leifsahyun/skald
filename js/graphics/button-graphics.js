@@ -7,6 +7,20 @@ class ButtonGraphics {
         this.buttonWorldX = buttonWorldX;
         this.buttonWorldY = buttonWorldY;
         this.onClickCallback = onClickCallback;
+        
+        // Animation state for inner circle
+        this.innerCircleOffsetX = 0;
+        this.innerCircleOffsetY = 0;
+        this.innerCircleTargetX = 0;
+        this.innerCircleTargetY = 0;
+        this.animationTimer = 0;
+        this.nextAnimationTime = this.getRandomAnimationDelay();
+        this.isAnimating = false;
+        this.maxOffset = 3; // Maximum distance inner circle can move from center
+        
+        // Track hover state
+        this.isHovered = false;
+        
         this.setupButton();
     }
     
@@ -21,8 +35,8 @@ class ButtonGraphics {
         // White middle circle
         this.graphics.circle(0, 0, 7);
         this.graphics.fill(middleColor);
-        // Black inner circle
-        this.graphics.circle(0, 0, 3);
+        // Black inner circle - with animated offset
+        this.graphics.circle(this.innerCircleOffsetX, this.innerCircleOffsetY, 3);
         this.graphics.fill(innerColor);
     }
     
@@ -39,10 +53,12 @@ class ButtonGraphics {
         
         // Add hover effect
         this.graphics.on('pointerover', () => {
+            this.isHovered = true;
             this.drawButton(0xe0e0e0, 0xe0e0e0, 0x333333);
         });
         
         this.graphics.on('pointerout', () => {
+            this.isHovered = false;
             this.drawButton(0xffffff, 0xffffff, 0x000000);
         });
         
@@ -50,5 +66,61 @@ class ButtonGraphics {
         this.graphics.on('pointerdown', () => {
             this.onClickCallback();
         });
+    }
+    
+    getRandomAnimationDelay() {
+        // Random delay between 2-5 seconds
+        return 2000 + Math.random() * 3000;
+    }
+    
+    getRandomTarget() {
+        // Generate random position within maxOffset radius
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * this.maxOffset;
+        return {
+            x: Math.cos(angle) * distance,
+            y: Math.sin(angle) * distance
+        };
+    }
+    
+    update(deltaTime) {
+        this.animationTimer += deltaTime;
+        
+        // Check if it's time to start a new animation
+        if (!this.isAnimating && this.animationTimer >= this.nextAnimationTime) {
+            this.isAnimating = true;
+            const target = this.getRandomTarget();
+            this.innerCircleTargetX = target.x;
+            this.innerCircleTargetY = target.y;
+            this.animationTimer = 0;
+        }
+        
+        // Animate towards target
+        if (this.isAnimating) {
+            const speed = 0.1; // Smooth movement speed
+            const dx = this.innerCircleTargetX - this.innerCircleOffsetX;
+            const dy = this.innerCircleTargetY - this.innerCircleOffsetY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < 0.1) {
+                // Reached target
+                this.innerCircleOffsetX = this.innerCircleTargetX;
+                this.innerCircleOffsetY = this.innerCircleTargetY;
+                this.isAnimating = false;
+                this.nextAnimationTime = this.getRandomAnimationDelay();
+                this.animationTimer = 0;
+            } else {
+                // Move towards target
+                this.innerCircleOffsetX += dx * speed;
+                this.innerCircleOffsetY += dy * speed;
+            }
+            
+            // Redraw button with new position, maintaining hover state
+            if (this.isHovered) {
+                this.drawButton(0xe0e0e0, 0xe0e0e0, 0x333333);
+            } else {
+                this.drawButton(0xffffff, 0xffffff, 0x000000);
+            }
+        }
     }
 }

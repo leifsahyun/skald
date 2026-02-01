@@ -51,6 +51,7 @@ class SailingGame {
         // Ocean animation
         this.waveOffset = 0;
         this.time = 0;
+        this.lastFrameTime = Date.now();
         
         // Controls
         this.keys = {};
@@ -554,10 +555,20 @@ class SailingGame {
             return;
         }
         
+        // Calculate delta time
+        const currentTime = Date.now();
+        const deltaTime = currentTime - this.lastFrameTime;
+        this.lastFrameTime = currentTime;
+        
         this.updateControls();
         this.updateWind();
         this.updatePhysics();
         this.updateChunks();
+        
+        // Update button animation
+        if (this.buttonRenderer) {
+            this.buttonRenderer.update(deltaTime);
+        }
         
         // Draw
         this.drawOcean();
