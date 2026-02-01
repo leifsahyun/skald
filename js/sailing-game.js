@@ -479,19 +479,19 @@ class SailingGame {
         const titleElement = this.textPanel.querySelector('h2');
         if (titleElement) {
             titleElement.textContent = poiData.name;
-        }
-        
-        // Handle subtitle (add or remove)
-        let subtitleElement = this.textPanel.querySelector('.panel-subtitle');
-        if (subtitle) {
-            if (!subtitleElement) {
-                subtitleElement = document.createElement('div');
-                subtitleElement.className = 'panel-subtitle';
-                titleElement.parentNode.insertBefore(subtitleElement, titleElement.nextSibling);
+            
+            // Handle subtitle (add or remove)
+            let subtitleElement = this.textPanel.querySelector('.panel-subtitle');
+            if (subtitle) {
+                if (!subtitleElement) {
+                    subtitleElement = document.createElement('div');
+                    subtitleElement.className = 'panel-subtitle';
+                    titleElement.parentNode.insertBefore(subtitleElement, titleElement.nextSibling);
+                }
+                subtitleElement.textContent = this.toTitleCase(subtitle);
+            } else if (subtitleElement) {
+                subtitleElement.remove();
             }
-            subtitleElement.textContent = this.toTitleCase(subtitle);
-        } else if (subtitleElement) {
-            subtitleElement.remove();
         }
         
         // Clear and update the panel content
