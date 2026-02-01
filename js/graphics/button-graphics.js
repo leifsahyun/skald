@@ -37,7 +37,7 @@ class ButtonGraphics {
         this.isInteractive = true;
         
         this.setupButton();
-        this.setupAnimation();
+        setTimeout(this.setupAnimation.bind(this), 10000 + Math.random() * 20000);
     }
     
     drawButton(outerColor, middleColor, innerColor) {
