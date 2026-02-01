@@ -410,16 +410,16 @@ class SailingGame {
         const boxWidth = maxX - minX;
         const boxHeight = maxY - minY;
         
-        // Calculate the center of the zoomBox
-        const centerX = this.width / 2 - (minX + maxX) / 2 + this.boat.x;
-        const centerY = this.height / 2 - (minY + maxY) / 2 + this.boat.y;
-        
         // Calculate the scale needed to fit the zoomBox in the viewport
         const scaleX = this.width / boxWidth / this.coastline.scaleFactor;
         const scaleY = this.height / boxHeight  / this.coastline.scaleFactor;
         
         // Use the smaller scale to ensure the entire box fits
         const newScale = Math.min(scaleX, scaleY);
+
+        // Calculate the center of the zoomBox
+        const centerX = this.width / 2 + (this.boat.x - (minX + maxX) / 2) * newScale;
+        const centerY = this.height / 2 + (this.boat.y - (minY + maxY) / 2) * newScale;
         
         // Use GSAP to tween the zoom over 0.5 seconds
         this.globalZoom(newScale,centerX,centerY).eventCallback("onComplete", () => {
