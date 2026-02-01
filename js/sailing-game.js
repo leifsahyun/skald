@@ -19,7 +19,11 @@ class SailingGame {
             indexLoaded: false,
             poiIndexLoaded: false,
             graphics: new Map(),
+            poiInteractionRadius: 500, // Max distance for POI interaction in world units
         };
+        
+        // Pre-calculate squared radius for distance comparisons (performance optimization)
+        this.coastline.poiInteractionRadiusSquared = this.coastline.poiInteractionRadius * this.coastline.poiInteractionRadius;
         
         // Boat state
         this.boat = {
@@ -678,13 +682,26 @@ class SailingGame {
 
             // Add POIs
             for (const poi of chunk.pois) {
-                if (poi.renderer)
-                    continue;
-                poi.renderer = this.createPoiButton(
-                    poi.x * this.coastline.chunkPixelSize / this.coastline.chunkSize, 
-                    -poi.y * this.coastline.chunkPixelSize / this.coastline.chunkSize,
-                    poi
-                );
+                if (!poi.renderer) {
+                    poi.renderer = this.createPoiButton(
+                        poi.x * this.coastline.chunkPixelSize / this.coastline.chunkSize, 
+                        -poi.y * this.coastline.chunkPixelSize / this.coastline.chunkSize,
+                        poi
+                    );
+                }
+                
+                // Calculate distance from boat to POI
+                const poiWorldX = poi.x * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+                const poiWorldY = -poi.y * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+                const dx = poiWorldX - this.boat.x;
+                const dy = poiWorldY - this.boat.y;
+                const distanceSquared = dx * dx + dy * dy;
+                
+                // Update button interactivity only when state changes (avoiding sqrt for performance)
+                const isInRange = distanceSquared <= this.coastline.poiInteractionRadiusSquared;
+                if (poi.renderer.isInteractive !== isInRange) {
+                    poi.renderer.setInteractive(isInRange);
+                }
             }
         }
     }
