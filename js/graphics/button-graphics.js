@@ -96,10 +96,9 @@ class ButtonGraphics {
                 innerCircleOffsetX: anim.map((a) => a[0]),
                 innerCircleOffsetY: anim.map((a) => a[1]),
                 ease: 'none',
-                easeEach: 'power2.inOut',
+                easeEach: 'sine.out',
             },
             duration: 5,
-            repeat: -1,
             onUpdate: () => {
                 // Redraw button with new position, maintaining hover state
                 if (this.isHovered) {
