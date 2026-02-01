@@ -19,6 +19,7 @@ class SailingGame {
             indexLoaded: false,
             poiIndexLoaded: false,
             graphics: new Map(),
+            zoomBoxPadding: 0.8, // Padding factor for POI zoom (80% of viewport)
         };
         
         // Boat state
@@ -402,8 +403,8 @@ class SailingGame {
         const centerY = (minY + maxY) / 2;
         
         // Calculate the scale needed to fit the zoomBox in the viewport
-        // Leave some padding (e.g., 80% of viewport)
-        const padding = 0.8;
+        // Leave some padding (configured in coastline.zoomBoxPadding)
+        const padding = this.coastline.zoomBoxPadding;
         const scaleX = (this.width * padding) / boxWidth;
         const scaleY = (this.height * padding) / boxHeight;
         
@@ -414,6 +415,8 @@ class SailingGame {
         this.coastline.scaleFactor = newScale;
         
         // Update the boat position to center on the zoomBox
+        // Note: In this game, the boat position serves as the camera target,
+        // so moving it updates what the player sees while the panel is open
         this.boat.x = centerX;
         this.boat.y = centerY;
     }
