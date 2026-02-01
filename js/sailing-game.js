@@ -372,8 +372,50 @@ class SailingGame {
             this.coastlineContainer, 
             x,
             y,
-            () => this.openPoiPanel(poiData)
+            () => {
+                this.zoomToPoiBox(poiData);
+                this.openPoiPanel(poiData);
+            }
         );
+    }
+    
+    zoomToPoiBox(poiData) {
+        if (!poiData.zoomBox || poiData.zoomBox.length !== 4) {
+            return;
+        }
+        
+        // Convert zoomBox coordinates from lat/lon to pixels
+        // zoomBox format: [minLon, minLat, maxLon, maxLat]
+        const [minLon, minLat, maxLon, maxLat] = poiData.zoomBox;
+        
+        const minX = minLon * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+        const minY = -maxLat * this.coastline.chunkPixelSize / this.coastline.chunkSize; // Note: Y is inverted
+        const maxX = maxLon * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+        const maxY = -minLat * this.coastline.chunkPixelSize / this.coastline.chunkSize; // Note: Y is inverted
+        
+        // Calculate the width and height of the zoomBox in pixels
+        const boxWidth = maxX - minX;
+        const boxHeight = maxY - minY;
+        
+        // Calculate the center of the zoomBox
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+        
+        // Calculate the scale needed to fit the zoomBox in the viewport
+        // Leave some padding (e.g., 80% of viewport)
+        const padding = 0.8;
+        const scaleX = (this.width * padding) / boxWidth;
+        const scaleY = (this.height * padding) / boxHeight;
+        
+        // Use the smaller scale to ensure the entire box fits
+        const newScale = Math.min(scaleX, scaleY);
+        
+        // Update the coastline scale factor
+        this.coastline.scaleFactor = newScale;
+        
+        // Update the boat position to center on the zoomBox
+        this.boat.x = centerX;
+        this.boat.y = centerY;
     }
     
     openPoiPanel(poiData) {
