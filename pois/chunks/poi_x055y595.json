@@ -16,7 +16,21 @@
 		"actions":[
 			"trade"
 		]
+	},
+	{
+		"x":5.92,
+		"y":59.40,
+		"zoomBox":[
+			5.91,
+			59.39,
+			5.93,
+			59.41
+		],
+		"name":"Mountain Runestone",
+		"characters":[
+			"mountain runestone"
+		]
 	}
-
 ]
+
 
