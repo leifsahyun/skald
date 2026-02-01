@@ -27,7 +27,7 @@ class ButtonGraphics {
         this.pupilAngle = 0;
         this.maxOffset = 3; // Maximum distance inner circle can move from center
 
-        this.blinkTime = 100;
+        this.blinkTime = 80;
         this.blink = Date.now() - this.blinkTime;
         
         // Track hover state
@@ -125,7 +125,7 @@ class ButtonGraphics {
             draw();
             // Do a new animation after a delay
             setTimeout(draw.bind(this), this.blinkTime);
-            setTimeout(this.setupAnimation.bind(this), 3000 + Math.random() * 7000);
+            setTimeout(this.setupAnimation.bind(this), 10000 + Math.random() * 20000);
         };
         
         // Use GSAP to animate the inner circle with keyframes
