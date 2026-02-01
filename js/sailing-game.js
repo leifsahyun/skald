@@ -565,11 +565,6 @@ class SailingGame {
         this.updatePhysics();
         this.updateChunks();
         
-        // Update button animation
-        if (this.buttonRenderer) {
-            this.buttonRenderer.update(deltaTime);
-        }
-        
         // Draw
         this.drawOcean();
         this.drawCoastline();
