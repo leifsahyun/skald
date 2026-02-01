@@ -32,7 +32,7 @@ class ButtonGraphics {
     drawButton(outerColor, middleColor, innerColor) {
         this.graphics.clear();
         this.graphics.zIndex = 1;
-        this.graphics.setTransform((new PIXI.Matrix()).translate(this.buttonWorldX, this.buttonWorldY).rotate(this.pupilAngle));
+        this.graphics.setTransform((new PIXI.Matrix()).rotate(this.pupilAngle).translate(this.buttonWorldX, this.buttonWorldY));
         // Outer white ring
         this.graphics.circle(0, 0, 10);
         this.graphics.stroke({width: 2, color: outerColor});
