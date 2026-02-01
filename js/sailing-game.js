@@ -361,7 +361,7 @@ class SailingGame {
         addButtonListeners('sailBtn', 'button', 'sail');
     }
     
-    createPoiButton(x,y) {
+    createPoiButton(x, y, poiData) {
         // Create the button graphics directly in coastlineContainer
         const buttonGraphics = new PIXI.Graphics();
         
@@ -371,8 +371,17 @@ class SailingGame {
             this.coastlineContainer, 
             x,
             y,
-            () => this.toggleTextPanel()
+            () => this.openPoiPanel(poiData)
         );
+    }
+    
+    openPoiPanel(poiData) {
+        if (this.textPanel) {
+            this.currentPoi = poiData;
+            this.updatePanelContent(poiData);
+            this.textPanel.classList.add('open');
+            this.isPanelOpen = true;
+        }
     }
     
     toggleTextPanel() {
@@ -380,6 +389,96 @@ class SailingGame {
             this.textPanel.classList.toggle('open');
             this.isPanelOpen = this.textPanel.classList.contains('open');
         }
+    }
+    
+    updatePanelContent(poiData) {
+        // Update the panel title
+        const titleElement = this.textPanel.querySelector('h2');
+        if (titleElement) {
+            titleElement.textContent = poiData.name;
+        }
+        
+        // Clear and update the panel content
+        const contentElement = this.textPanel.querySelector('.panel-content');
+        if (contentElement) {
+            contentElement.innerHTML = '';
+            
+            // Add actions section
+            if (poiData.actions && poiData.actions.length > 0) {
+                poiData.actions.forEach(action => {
+                    const actionRow = document.createElement('div');
+                    actionRow.className = 'panel-row';
+                    const icon = this.getActionIcon(action);
+                    actionRow.innerHTML = `
+                        <span class="panel-icon">${icon}</span>
+                        <span class="panel-text">${this.toTitleCase(action)}</span>
+                    `;
+                    actionRow.addEventListener('click', () => this.showDetail(action, 'action'));
+                    contentElement.appendChild(actionRow);
+                });
+            }
+            
+            // Add characters section
+            if (poiData.characters && poiData.characters.length > 0) {
+                const peopleHeader = document.createElement('div');
+                peopleHeader.className = 'panel-section-header';
+                peopleHeader.textContent = 'People';
+                contentElement.appendChild(peopleHeader);
+                
+                poiData.characters.forEach(character => {
+                    const characterRow = document.createElement('div');
+                    characterRow.className = 'panel-row';
+                    characterRow.innerHTML = `
+                        <span class="panel-text">${this.toTitleCase(character)}</span>
+                    `;
+                    characterRow.addEventListener('click', () => this.showDetail(character, 'character'));
+                    contentElement.appendChild(characterRow);
+                });
+            }
+        }
+    }
+    
+    getActionIcon(action) {
+        const iconMap = {
+            'trade': '🛒',
+            'shop': '🏪',
+            'rest': '🛏️',
+            'quest': '📜',
+            'fight': '⚔️',
+            'talk': '💬',
+            'explore': '🔍'
+        };
+        return iconMap[action.toLowerCase()] || '⚔️';
+    }
+    
+    showDetail(name, type) {
+        // Update the panel to show detail view
+        const titleElement = this.textPanel.querySelector('h2');
+        if (titleElement) {
+            titleElement.textContent = this.toTitleCase(name);
+        }
+        
+        const contentElement = this.textPanel.querySelector('.panel-content');
+        if (contentElement) {
+            contentElement.innerHTML = `
+                <button class="back-btn">← Back</button>
+                <div class="detail-content">
+                    <!-- Blank interface for ${type} -->
+                </div>
+            `;
+            
+            // Add back button handler
+            const backBtn = contentElement.querySelector('.back-btn');
+            if (backBtn) {
+                backBtn.addEventListener('click', () => this.updatePanelContent(this.currentPoi));
+            }
+        }
+    }
+    
+    toTitleCase(str) {
+        return str.replace(/\w\S*/g, (txt) => {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        });
     }
     
     setupCloseButton() {
@@ -579,7 +678,11 @@ class SailingGame {
             for (const poi of chunk.pois) {
                 if (poi.renderer)
                     continue;
-                poi.renderer = this.createPoiButton(poi.x * this.coastline.chunkPixelSize / this.coastline.chunkSize, -poi.y * this.coastline.chunkPixelSize / this.coastline.chunkSize);
+                poi.renderer = this.createPoiButton(
+                    poi.x * this.coastline.chunkPixelSize / this.coastline.chunkSize, 
+                    -poi.y * this.coastline.chunkPixelSize / this.coastline.chunkSize,
+                    poi
+                );
             }
         }
     }
