@@ -801,7 +801,7 @@ class SailingGame {
         const bimodal = (biased + Math.round(Math.random())*2 - 1) / 2;
         
         // Map to range [-3π/4, π3/4], biased toward -3π/8 and 3π/8 (ne and se)
-        const angle = biased * 3 * Math.PI / 4;
+        const angle = bimodal * 3 * Math.PI / 4;
         
         // Normalize to [0, 2π]
         return (angle + 2 * Math.PI) % (2 * Math.PI);
