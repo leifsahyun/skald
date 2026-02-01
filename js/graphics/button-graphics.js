@@ -91,10 +91,19 @@ class ButtonGraphics {
         });
     }
 
+    draw() {
+        // Redraw button with new position, maintaining hover state
+        if (this.isHovered) {
+            this.drawButton(this.COLOR_HOVER_OUTER, this.COLOR_HOVER_MIDDLE, this.COLOR_HOVER_INNER);
+        } else {
+            this.drawButton(this.COLOR_NORMAL_OUTER, this.COLOR_NORMAL_MIDDLE, this.COLOR_NORMAL_INNER);
+        }
+    }
+    
     blinkNow() {
         this.blink = Date.now();
-        draw();
-        setTimeout(draw.bind(this), this.blinkTime);
+        this.draw();
+        setTimeout(this.draw.bind(this), this.blinkTime);
     }
     
     setupAnimation() {
@@ -118,15 +127,6 @@ class ButtonGraphics {
 
         const anim = animations[Math.floor(Math.random() * animations.length)];
 
-        const draw = () => {
-            // Redraw button with new position, maintaining hover state
-            if (this.isHovered) {
-                this.drawButton(this.COLOR_HOVER_OUTER, this.COLOR_HOVER_MIDDLE, this.COLOR_HOVER_INNER);
-            } else {
-                this.drawButton(this.COLOR_NORMAL_OUTER, this.COLOR_NORMAL_MIDDLE, this.COLOR_NORMAL_INNER);
-            }
-        };
-
         const onComplete = () => {
             this.blinkNow();
             // Do a new animation after a delay
@@ -143,7 +143,7 @@ class ButtonGraphics {
                 easeEach: 'sine.out',
             },
             duration: 3,
-            onUpdate: draw,
+            onUpdate: this.draw,
             onComplete: onComplete
         });
     }
