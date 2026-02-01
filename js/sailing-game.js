@@ -19,6 +19,7 @@ class SailingGame {
             indexLoaded: false,
             poiIndexLoaded: false,
             graphics: new Map(),
+            poiInteractionRadius: 500, // Max distance for POI interaction (50 units * 10 scale factor)
         };
         
         // Boat state
@@ -678,13 +679,24 @@ class SailingGame {
 
             // Add POIs
             for (const poi of chunk.pois) {
-                if (poi.renderer)
-                    continue;
-                poi.renderer = this.createPoiButton(
-                    poi.x * this.coastline.chunkPixelSize / this.coastline.chunkSize, 
-                    -poi.y * this.coastline.chunkPixelSize / this.coastline.chunkSize,
-                    poi
-                );
+                if (!poi.renderer) {
+                    poi.renderer = this.createPoiButton(
+                        poi.x * this.coastline.chunkPixelSize / this.coastline.chunkSize, 
+                        -poi.y * this.coastline.chunkPixelSize / this.coastline.chunkSize,
+                        poi
+                    );
+                }
+                
+                // Calculate distance from boat to POI
+                const poiWorldX = poi.x * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+                const poiWorldY = -poi.y * this.coastline.chunkPixelSize / this.coastline.chunkSize;
+                const dx = poiWorldX - this.boat.x;
+                const dy = poiWorldY - this.boat.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Update button interactivity based on distance
+                const isInRange = distance <= this.coastline.poiInteractionRadius;
+                poi.renderer.setInteractive(isInRange);
             }
         }
     }

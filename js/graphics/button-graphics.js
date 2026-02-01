@@ -33,6 +33,9 @@ class ButtonGraphics {
         // Track hover state
         this.isHovered = false;
         
+        // Track interaction state
+        this.isInteractive = true;
+        
         this.setupButton();
         this.setupAnimation();
     }
@@ -75,17 +78,20 @@ class ButtonGraphics {
         
         // Add hover effect
         this.graphics.on('pointerover', () => {
+            if (!this.isInteractive) return;
             this.isHovered = true;
             this.drawButton(this.COLOR_HOVER_OUTER, this.COLOR_HOVER_MIDDLE, this.COLOR_HOVER_INNER);
         });
         
         this.graphics.on('pointerout', () => {
+            if (!this.isInteractive) return;
             this.isHovered = false;
             this.drawButton(this.COLOR_NORMAL_OUTER, this.COLOR_NORMAL_MIDDLE, this.COLOR_NORMAL_INNER);
         });
         
         // Add click handler
         this.graphics.on('pointerdown', () => {
+            if (!this.isInteractive) return;
             this.blinkNow();
             this.onClickCallback();
         });
@@ -97,6 +103,24 @@ class ButtonGraphics {
             this.drawButton(this.COLOR_HOVER_OUTER, this.COLOR_HOVER_MIDDLE, this.COLOR_HOVER_INNER);
         } else {
             this.drawButton(this.COLOR_NORMAL_OUTER, this.COLOR_NORMAL_MIDDLE, this.COLOR_NORMAL_INNER);
+        }
+    }
+    
+    setInteractive(isInteractive) {
+        // Update interactive state
+        this.isInteractive = isInteractive;
+        
+        if (isInteractive) {
+            this.graphics.eventMode = 'static';
+            this.graphics.cursor = 'pointer';
+        } else {
+            this.graphics.eventMode = 'none';
+            this.graphics.cursor = 'default';
+            // Reset hover state when disabling interaction
+            if (this.isHovered) {
+                this.isHovered = false;
+                this.drawButton(this.COLOR_NORMAL_OUTER, this.COLOR_NORMAL_MIDDLE, this.COLOR_NORMAL_INNER);
+            }
         }
     }
     
