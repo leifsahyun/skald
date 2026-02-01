@@ -28,8 +28,7 @@ class ButtonGraphics {
         this.maxOffset = 3; // Maximum distance inner circle can move from center
 
         this.blinkTime = 100;
-        this.blink = Date.now()
-        this.blink.setMilliseconds(this.blink.getMilliseconds() - this.blinkTime);
+        this.blink = Date.now() - this.blinkTime;
         
         // Track hover state
         this.isHovered = false;
