@@ -34,6 +34,10 @@ class PoetryInterface {
         this.draggedWord = null;
         this.dragOffset = { x: 0, y: 0 };
         
+        // Word dimensions (used for drag and drop bounds)
+        this.wordWidth = 100;
+        this.wordHeight = 40;
+        
         this.createInterface();
     }
     
@@ -142,8 +146,6 @@ class PoetryInterface {
         const leftMargin = 50;
         const startY = 120;
         const wordSpacing = 50;
-        const wordWidth = 100;
-        const wordHeight = 40;
         
         // Collection title
         const collectionTitle = new PIXI.Text({
@@ -172,7 +174,7 @@ class PoetryInterface {
             
             // Word background
             const wordBg = new PIXI.Graphics();
-            wordBg.rect(0, 0, wordWidth, wordHeight);
+            wordBg.rect(0, 0, this.wordWidth, this.wordHeight);
             wordBg.fill({ color: 0x4a7c59, alpha: 0.8 });
             wordBg.stroke({ color: 0x6b9570, width: 2 });
             wordContainer.addChild(wordBg);
@@ -188,8 +190,8 @@ class PoetryInterface {
                 }
             });
             wordText.anchor.set(0.5, 0.5);
-            wordText.x = wordWidth / 2;
-            wordText.y = wordHeight / 2;
+            wordText.x = this.wordWidth / 2;
+            wordText.y = this.wordHeight / 2;
             wordContainer.addChild(wordText);
             
             // Store word data
@@ -231,7 +233,7 @@ class PoetryInterface {
             
             // Visual feedback
             wordObject.background.clear();
-            wordObject.background.rect(0, 0, 100, 40);
+            wordObject.background.rect(0, 0, this.wordWidth, this.wordHeight);
             wordObject.background.fill({ color: 0x6b9570, alpha: 1 });
             wordObject.background.stroke({ color: 0x8bb896, width: 2 });
         });
@@ -304,7 +306,7 @@ class PoetryInterface {
         
         // Reset visual
         wordObject.background.clear();
-        wordObject.background.rect(0, 0, 100, 40);
+        wordObject.background.rect(0, 0, this.wordWidth, this.wordHeight);
         wordObject.background.fill({ color: 0x4a7c59, alpha: 0.8 });
         wordObject.background.stroke({ color: 0x6b9570, width: 2 });
     }
