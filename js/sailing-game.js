@@ -683,7 +683,11 @@ class SailingGame {
     }
     
     showDetail(name) {
-        // Otherwise, show regular detail view for actions
+        // Check if this is a character (vs an action)
+        const isCharacter = this.currentPoi && 
+                           this.currentPoi.characters && 
+                           this.currentPoi.characters.includes(name);
+        
         // Update the panel to show detail view with POI name as title and character/action as subtitle
         if (this.currentPoi) {
             this.updatePanelContent(this.currentPoi, name);
@@ -704,11 +708,110 @@ class SailingGame {
             });
             contentElement.appendChild(backBtn);
             
-            // Create detail content area
-            const detailDiv = document.createElement('div');
-            detailDiv.className = 'detail-content';
-            contentElement.appendChild(detailDiv);
+            // If it's a character, show chat interface
+            if (isCharacter) {
+                this.showChatInterface(contentElement, name);
+            } else {
+                // Otherwise, show regular detail content area
+                const detailDiv = document.createElement('div');
+                detailDiv.className = 'detail-content';
+                contentElement.appendChild(detailDiv);
+            }
         }
+    }
+    
+    showChatInterface(contentElement, characterName) {
+        // Create chat interface container
+        const chatInterface = document.createElement('div');
+        chatInterface.className = 'chat-interface';
+        
+        // Create chat history area
+        const chatHistory = document.createElement('div');
+        chatHistory.className = 'chat-history';
+        chatHistory.id = 'chatHistory';
+        chatInterface.appendChild(chatHistory);
+        
+        // Create input area
+        const inputArea = document.createElement('div');
+        inputArea.className = 'chat-input-area';
+        
+        // Create input textbox
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'chat-input';
+        input.placeholder = 'Type a message...';
+        input.id = 'chatInput';
+        
+        // Create send button
+        const sendBtn = document.createElement('button');
+        sendBtn.className = 'chat-send-btn';
+        sendBtn.textContent = 'Send';
+        
+        inputArea.appendChild(input);
+        inputArea.appendChild(sendBtn);
+        chatInterface.appendChild(inputArea);
+        
+        contentElement.appendChild(chatInterface);
+        
+        // Set up event listeners
+        sendBtn.addEventListener('click', () => this.sendChatMessage(characterName));
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.sendChatMessage(characterName);
+            }
+        });
+        
+        // Focus the input
+        input.focus();
+    }
+    
+    sendChatMessage(characterName) {
+        const input = document.getElementById('chatInput');
+        const chatHistory = document.getElementById('chatHistory');
+        
+        if (!input || !chatHistory) return;
+        
+        const message = input.value.trim();
+        if (!message) return;
+        
+        // Add user message to chat history
+        this.addChatMessage(chatHistory, 'You', message, 'user');
+        
+        // Clear input
+        input.value = '';
+        
+        // Simulate character response after a short delay
+        const CHAT_RESPONSE_DELAY_MS = 500;
+        setTimeout(() => {
+            this.simulateCharacterResponse(chatHistory, characterName);
+        }, CHAT_RESPONSE_DELAY_MS);
+    }
+    
+    addChatMessage(chatHistory, sender, text, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${type}`;
+        
+        const senderDiv = document.createElement('div');
+        senderDiv.className = 'chat-message-sender';
+        senderDiv.textContent = sender;
+        
+        const textDiv = document.createElement('div');
+        textDiv.className = 'chat-message-text';
+        textDiv.textContent = text;
+        
+        messageDiv.appendChild(senderDiv);
+        messageDiv.appendChild(textDiv);
+        chatHistory.appendChild(messageDiv);
+        
+        // Scroll to bottom
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+    
+    simulateCharacterResponse(chatHistory, characterName) {
+        // TODO: Replace this dummy implementation with actual character dialogue system
+        // Currently responds with "hello" as a placeholder for testing
+        const characterDisplayName = this.toTitleCase(characterName);
+        this.addChatMessage(chatHistory, characterDisplayName, 'hello', 'character');
     }
     
     toTitleCase(str) {
