@@ -441,7 +441,7 @@ class SailingGame {
             this.enemyContainer.addChild(sprite);
             
             // Load aware_eye.svg
-            const eyeTexture = await PIXI.Assets.load('enemies/aware_eye.svg');
+            const eyeTexture = await PIXI.Assets.load('enemies/aware_eye.svg', resolution: 8);
             const eyeSprite = new PIXI.Sprite(eyeTexture);
             eyeSprite.anchor.set(0.5, 1); // Anchor at bottom center
             eyeSprite.width = enemy.eyeSize;
