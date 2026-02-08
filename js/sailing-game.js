@@ -36,7 +36,7 @@ class SailingGame {
         // Boat state
         this.boat = {
             x: 5.6 * this.coastline.chunkPixelSize / this.coastline.chunkSize,
-            y: -59.28 * this.coastline.chunkPixelSize / this.coastline.chunkSize,
+            y: -59.31 * this.coastline.chunkPixelSize / this.coastline.chunkSize,
             angle: 0,
             speed: 0,
             maxSpeed: 15,
