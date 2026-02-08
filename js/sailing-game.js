@@ -73,6 +73,9 @@ class SailingGame {
         this.mouseDown = { left: false, right: false };
         this.buttonPressTime = {};
         
+        // Enemies
+        this.enemies = [];
+        
         // Initialize the game asynchronously
         this.init();
     }
@@ -92,11 +95,13 @@ class SailingGame {
         this.oceanContainer = new PIXI.Container();
         this.coastlineContainer = new PIXI.Container();
         this.boatContainer = new PIXI.Container();
+        this.enemyContainer = new PIXI.Container();
         this.windContainer = new PIXI.Container();
         this.worldContainer = new PIXI.Container();
 
         this.worldContainer.addChild(this.coastlineContainer);
         this.worldContainer.addChild(this.boatContainer);
+        this.worldContainer.addChild(this.enemyContainer);
         this.app.stage.addChild(this.oceanContainer);
         this.app.stage.addChild(this.worldContainer);
         this.app.stage.addChild(this.windContainer);
@@ -136,6 +141,7 @@ class SailingGame {
         this.setupCloseButton();
         this.loadChunkIndex();
         this.loadPoiIndex();
+        this.initializeEnemies();
         this.gameLoop();
     }
     
@@ -381,6 +387,173 @@ class SailingGame {
                 
                 // Reduce boat speed on collision using configured damping
                 this.boat.speed *= this.coastline.collisionSpeedDamping;
+            }
+        }
+    }
+    
+    initializeEnemies() {
+        // Spawn one enemy near the boat start position
+        const offsetDistance = 200; // Spawn 200 units away from boat
+        const randomAngle = Math.random() * Math.PI * 2;
+        
+        const enemy = {
+            x: this.boat.x + Math.cos(randomAngle) * offsetDistance,
+            y: this.boat.y + Math.sin(randomAngle) * offsetDistance,
+            angle: Math.random() * Math.PI * 2, // Random initial direction
+            speed: 0, // Will be determined by awareness
+            turnSpeed: 0.02, // Radians per frame
+            size: 30,
+            awareness: 0, // 0-1 scale
+            awarenessThreshold: 0.01, // Threshold for zero awareness detection
+            awarenessDistances: {
+                zero: 500, // Beyond this distance, zero awareness
+                low: 300,  // Between low and zero: low awareness
+                high: 150  // Below this distance: high awareness
+            },
+            speeds: {
+                zero: 0,
+                low: 1,
+                high: 4
+            },
+            collision: {
+                pushStrength: 2.0,
+                speedDamping: 0.7 // Boat speed multiplier on collision (0.7 = 30% reduction)
+            },
+            eyeSize: 20,
+            eyeVerticalOffset: 10, // Pixels above enemy
+            sprite: null,
+            eyeSprite: null
+        };
+        
+        this.enemies.push(enemy);
+        this.loadEnemyAssets(enemy);
+    }
+    
+    async loadEnemyAssets(enemy) {
+        try {
+            // Load nykur texture
+            const texture = await PIXI.Assets.load('enemies/nykur/nykur.png');
+            const sprite = new PIXI.Sprite(texture);
+            sprite.anchor.set(0.5, 0.5);
+            sprite.width = enemy.size;
+            sprite.height = enemy.size;
+            enemy.sprite = sprite;
+            this.enemyContainer.addChild(sprite);
+            
+            // Load aware_eye.svg
+            const eyeTexture = await PIXI.Assets.load('enemies/aware_eye.svg');
+            const eyeSprite = new PIXI.Sprite(eyeTexture);
+            eyeSprite.anchor.set(0.5, 1); // Anchor at bottom center
+            eyeSprite.width = enemy.eyeSize;
+            eyeSprite.height = enemy.eyeSize;
+            enemy.eyeSprite = eyeSprite;
+            this.enemyContainer.addChild(eyeSprite);
+        } catch (error) {
+            console.error('Failed to load enemy assets:', error);
+        }
+    }
+    
+    updateEnemies() {
+        for (const enemy of this.enemies) {
+            if (!enemy.sprite) continue;
+            
+            // Calculate distance to boat
+            const dx = this.boat.x - enemy.x;
+            const dy = this.boat.y - enemy.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Update awareness based on distance
+            if (distance > enemy.awarenessDistances.zero) {
+                enemy.awareness = 0;
+            } else if (distance > enemy.awarenessDistances.low) {
+                // Linear interpolation between zero and low
+                const t = (enemy.awarenessDistances.zero - distance) / 
+                         (enemy.awarenessDistances.zero - enemy.awarenessDistances.low);
+                enemy.awareness = t * 0.5; // 0 to 0.5
+            } else if (distance > enemy.awarenessDistances.high) {
+                // Linear interpolation between low and high
+                const t = (enemy.awarenessDistances.low - distance) / 
+                         (enemy.awarenessDistances.low - enemy.awarenessDistances.high);
+                enemy.awareness = 0.5 + t * 0.5; // 0.5 to 1.0
+            } else {
+                enemy.awareness = 1.0;
+            }
+            
+            // Adjust enemy direction to face boat
+            const targetAngle = Math.atan2(dy, dx);
+            let angleDiff = targetAngle - enemy.angle;
+            
+            // Normalize angle difference to [-PI, PI]
+            while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+            while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+            
+            // Gradually turn towards boat
+            enemy.angle += angleDiff * enemy.turnSpeed;
+            
+            // Set speed based on awareness
+            if (enemy.awareness < enemy.awarenessThreshold) {
+                enemy.speed = enemy.speeds.zero;
+            } else if (enemy.awareness < 0.5) {
+                enemy.speed = enemy.speeds.low;
+            } else {
+                enemy.speed = enemy.speeds.high;
+            }
+            
+            // Move enemy in the direction it's facing
+            enemy.x += Math.cos(enemy.angle) * enemy.speed;
+            enemy.y += Math.sin(enemy.angle) * enemy.speed;
+            
+            // Check collision with boat
+            this.checkEnemyBoatCollision(enemy);
+        }
+    }
+    
+    checkEnemyBoatCollision(enemy) {
+        const dx = this.boat.x - enemy.x;
+        const dy = this.boat.y - enemy.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        const collisionDistance = enemy.size / 2 + this.boat.length / 2;
+        
+        if (distance < collisionDistance) {
+            // Push boat away from enemy
+            if (distance > 0) {
+                this.boat.x += (dx / distance) * enemy.collision.pushStrength;
+                this.boat.y += (dy / distance) * enemy.collision.pushStrength;
+                
+                // Reduce boat speed
+                this.boat.speed *= enemy.collision.speedDamping;
+            }
+        }
+    }
+    
+    drawEnemies() {
+        const scale = this.coastline.scaleFactor;
+        
+        for (const enemy of this.enemies) {
+            if (!enemy.sprite) continue;
+            
+            // Position enemy sprite relative to boat
+            const screenX = (enemy.x - this.boat.x) * scale;
+            const screenY = (enemy.y - this.boat.y) * scale;
+            
+            enemy.sprite.x = screenX;
+            enemy.sprite.y = screenY;
+            enemy.sprite.rotation = enemy.angle;
+            
+            // Update eye sprite
+            if (enemy.eyeSprite) {
+                enemy.eyeSprite.x = screenX;
+                enemy.eyeSprite.y = screenY - enemy.size / 2 - enemy.eyeVerticalOffset; // Above enemy
+                
+                // Change eye color based on awareness
+                if (enemy.awareness < enemy.awarenessThreshold) {
+                    enemy.eyeSprite.tint = 0x000000; // Black
+                } else if (enemy.awareness < 0.5) {
+                    enemy.eyeSprite.tint = 0xFFFF00; // Yellow
+                } else {
+                    enemy.eyeSprite.tint = 0xFF0000; // Red
+                }
             }
         }
     }
@@ -1083,6 +1256,7 @@ class SailingGame {
         this.updateControls();
         this.updateWind();
         this.updatePhysics();
+        this.updateEnemies();
         this.updateChunks();
         
         // Draw
@@ -1090,6 +1264,7 @@ class SailingGame {
         this.drawCoastline();
         this.drawWind();
         this.drawBoat();
+        this.drawEnemies();
         
         this.updateUI();
         
