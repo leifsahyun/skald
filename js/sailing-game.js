@@ -401,13 +401,18 @@ class SailingGame {
             y: this.boat.y + Math.sin(randomAngle) * offsetDistance,
             angle: Math.random() * Math.PI * 2, // Random initial direction
             speed: 0, // Will be determined by awareness
-            baseSpeed: 2, // Base speed multiplier for awareness calculations
             size: 30,
             awareness: 0, // 0-1 scale
+            awarenessThreshold: 0.01, // Threshold for zero awareness detection
             awarenessDistances: {
                 zero: 500, // Beyond this distance, zero awareness
                 low: 300,  // Between low and zero: low awareness
                 high: 150  // Below this distance: high awareness
+            },
+            speeds: {
+                zero: 0,
+                low: 1,
+                high: 4
             },
             sprite: null,
             eyeSprite: null
@@ -480,12 +485,12 @@ class SailingGame {
             enemy.angle += angleDiff * turnSpeed;
             
             // Set speed based on awareness
-            if (enemy.awareness < 0.01) {
-                enemy.speed = 0;
+            if (enemy.awareness < enemy.awarenessThreshold) {
+                enemy.speed = enemy.speeds.zero;
             } else if (enemy.awareness < 0.5) {
-                enemy.speed = 1; // Low speed
+                enemy.speed = enemy.speeds.low;
             } else {
-                enemy.speed = 4; // High speed
+                enemy.speed = enemy.speeds.high;
             }
             
             // Move enemy in the direction it's facing
@@ -537,7 +542,7 @@ class SailingGame {
                 enemy.eyeSprite.y = screenY - enemy.size / 2 - 10; // Above enemy
                 
                 // Change eye color based on awareness
-                if (enemy.awareness < 0.01) {
+                if (enemy.awareness < enemy.awarenessThreshold) {
                     enemy.eyeSprite.tint = 0x000000; // Black
                 } else if (enemy.awareness < 0.5) {
                     enemy.eyeSprite.tint = 0xFFFF00; // Yellow
