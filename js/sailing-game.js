@@ -392,28 +392,24 @@ class SailingGame {
     }
     
     initializeEnemies() {
-        // Spawn one enemy near the boat start position
-        const offsetDistance = 200; // Spawn 200 units away from boat
-        const randomAngle = Math.random() * Math.PI * 2;
-        
         const enemy = {
-            x: this.boat.x + Math.cos(randomAngle) * offsetDistance,
-            y: this.boat.y + Math.sin(randomAngle) * offsetDistance,
+            x: 5.43 * this.coastline.chunkPixelSize / this.coastline.chunkSize,
+            y: -59.14 * this.coastline.chunkPixelSize / this.coastline.chunkSize,
             angle: Math.random() * Math.PI * 2, // Random initial direction
             speed: 0, // Will be determined by awareness
-            turnSpeed: 0.02, // Radians per frame
+            turnSpeed: 0.05, // Radians per frame
             size: 30,
             awareness: 0, // 0-1 scale
             awarenessThreshold: 0.01, // Threshold for zero awareness detection
             awarenessDistances: {
-                zero: 500, // Beyond this distance, zero awareness
-                low: 300,  // Between low and zero: low awareness
-                high: 150  // Below this distance: high awareness
+                zero: 300, // Beyond this distance, zero awareness
+                low: 200,  // Between low and zero: low awareness
+                high: 100  // Below this distance: high awareness
             },
             speeds: {
                 zero: 0,
-                low: 1,
-                high: 4
+                low: 0.5,
+                high: 1
             },
             collision: {
                 pushStrength: 2.0,
@@ -513,7 +509,7 @@ class SailingGame {
         const dy = this.boat.y - enemy.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        const collisionDistance = enemy.size / 2 + this.boat.length / 2;
+        const collisionDistance = enemy.size * 2 / 3;
         
         if (distance < collisionDistance) {
             // Push boat away from enemy
