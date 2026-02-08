@@ -401,6 +401,7 @@ class SailingGame {
             y: this.boat.y + Math.sin(randomAngle) * offsetDistance,
             angle: Math.random() * Math.PI * 2, // Random initial direction
             speed: 0, // Will be determined by awareness
+            turnSpeed: 0.02, // Radians per frame
             size: 30,
             awareness: 0, // 0-1 scale
             awarenessThreshold: 0.01, // Threshold for zero awareness detection
@@ -414,6 +415,12 @@ class SailingGame {
                 low: 1,
                 high: 4
             },
+            collision: {
+                pushStrength: 2.0,
+                speedDamping: 0.7 // Boat speed multiplier on collision (0.7 = 30% reduction)
+            },
+            eyeSize: 20,
+            eyeVerticalOffset: 10, // Pixels above enemy
             sprite: null,
             eyeSprite: null
         };
@@ -437,8 +444,8 @@ class SailingGame {
             const eyeTexture = await PIXI.Assets.load('enemies/aware_eye.svg');
             const eyeSprite = new PIXI.Sprite(eyeTexture);
             eyeSprite.anchor.set(0.5, 1); // Anchor at bottom center
-            eyeSprite.width = 20;
-            eyeSprite.height = 20;
+            eyeSprite.width = enemy.eyeSize;
+            eyeSprite.height = enemy.eyeSize;
             enemy.eyeSprite = eyeSprite;
             this.enemyContainer.addChild(eyeSprite);
         } catch (error) {
@@ -481,8 +488,7 @@ class SailingGame {
             while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
             
             // Gradually turn towards boat
-            const turnSpeed = 0.02;
-            enemy.angle += angleDiff * turnSpeed;
+            enemy.angle += angleDiff * enemy.turnSpeed;
             
             // Set speed based on awareness
             if (enemy.awareness < enemy.awarenessThreshold) {
@@ -511,13 +517,12 @@ class SailingGame {
         
         if (distance < collisionDistance) {
             // Push boat away from enemy
-            const pushStrength = 2.0;
             if (distance > 0) {
-                this.boat.x += (dx / distance) * pushStrength;
-                this.boat.y += (dy / distance) * pushStrength;
+                this.boat.x += (dx / distance) * enemy.collision.pushStrength;
+                this.boat.y += (dy / distance) * enemy.collision.pushStrength;
                 
                 // Reduce boat speed
-                this.boat.speed *= 0.7;
+                this.boat.speed *= enemy.collision.speedDamping;
             }
         }
     }
@@ -539,7 +544,7 @@ class SailingGame {
             // Update eye sprite
             if (enemy.eyeSprite) {
                 enemy.eyeSprite.x = screenX;
-                enemy.eyeSprite.y = screenY - enemy.size / 2 - 10; // Above enemy
+                enemy.eyeSprite.y = screenY - enemy.size / 2 - enemy.eyeVerticalOffset; // Above enemy
                 
                 // Change eye color based on awareness
                 if (enemy.awareness < enemy.awarenessThreshold) {
