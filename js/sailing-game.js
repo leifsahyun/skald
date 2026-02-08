@@ -781,9 +781,10 @@ class SailingGame {
         input.value = '';
         
         // Simulate character response after a short delay
+        const CHAT_RESPONSE_DELAY_MS = 500;
         setTimeout(() => {
             this.simulateCharacterResponse(chatHistory, characterName);
-        }, 500);
+        }, CHAT_RESPONSE_DELAY_MS);
     }
     
     addChatMessage(chatHistory, sender, text, type) {
@@ -807,7 +808,8 @@ class SailingGame {
     }
     
     simulateCharacterResponse(chatHistory, characterName) {
-        // Dummy method that adds "hello" to the chat history
+        // TODO: Replace this dummy implementation with actual character dialogue system
+        // Currently responds with "hello" as a placeholder for testing
         const characterDisplayName = this.toTitleCase(characterName);
         this.addChatMessage(chatHistory, characterDisplayName, 'hello', 'character');
     }
