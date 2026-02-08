@@ -401,7 +401,7 @@ class SailingGame {
             y: this.boat.y + Math.sin(randomAngle) * offsetDistance,
             angle: Math.random() * Math.PI * 2, // Random initial direction
             speed: 0, // Will be determined by awareness
-            baseSpeed: 2, // Base speed when aware
+            baseSpeed: 2, // Base speed multiplier for awareness calculations
             size: 30,
             awareness: 0, // 0-1 scale
             awarenessDistances: {
@@ -480,12 +480,12 @@ class SailingGame {
             enemy.angle += angleDiff * turnSpeed;
             
             // Set speed based on awareness
-            if (enemy.awareness === 0) {
+            if (enemy.awareness < 0.01) {
                 enemy.speed = 0;
             } else if (enemy.awareness < 0.5) {
-                enemy.speed = enemy.baseSpeed * 0.5; // Low speed
+                enemy.speed = 1; // Low speed
             } else {
-                enemy.speed = enemy.baseSpeed * 2; // High speed
+                enemy.speed = 4; // High speed
             }
             
             // Move enemy in the direction it's facing
@@ -537,7 +537,7 @@ class SailingGame {
                 enemy.eyeSprite.y = screenY - enemy.size / 2 - 10; // Above enemy
                 
                 // Change eye color based on awareness
-                if (enemy.awareness === 0) {
+                if (enemy.awareness < 0.01) {
                     enemy.eyeSprite.tint = 0x000000; // Black
                 } else if (enemy.awareness < 0.5) {
                     enemy.eyeSprite.tint = 0xFFFF00; // Yellow
