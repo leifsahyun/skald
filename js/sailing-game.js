@@ -611,7 +611,12 @@ class SailingGame {
         // Update the panel title
         const titleElement = this.textPanel.querySelector('h2');
         if (titleElement) {
-            titleElement.textContent = poiData.name;
+            if (subtitle) {
+                titleElement.textContent = this.toTitleCase(subtitle);
+            }
+            else {
+                titleElement.textContent = this.toTitleCase(poiData.name);
+            }
             
             // Handle subtitle (add or remove)
             let subtitleElement = this.textPanel.querySelector('.panel-subtitle');
@@ -622,7 +627,7 @@ class SailingGame {
                     titleElement.parentNode.insertBefore(subtitleElement, titleElement.nextSibling);
                 }
                 if (subtitleElement) {
-                    subtitleElement.textContent = this.toTitleCase(subtitle);
+                    subtitleElement.textContent = this.toTitleCase(poiData.name);
                 }
             } else if (subtitleElement) {
                 subtitleElement.remove();
@@ -678,16 +683,6 @@ class SailingGame {
     }
     
     showDetail(name) {
-        // Check if this is a character - if so, show poetry interface
-        if (this.currentPoi && this.currentPoi.characters && 
-            this.currentPoi.characters.some(char => char.toLowerCase() === name.toLowerCase())) {
-            // Hide the text panel and show poetry interface
-            this.textPanel.classList.remove('open');
-            this.isPanelOpen = false;
-            this.poetryInterface.show();
-            return;
-        }
-        
         // Otherwise, show regular detail view for actions
         // Update the panel to show detail view with POI name as title and character/action as subtitle
         if (this.currentPoi) {
