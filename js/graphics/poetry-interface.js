@@ -16,18 +16,18 @@ class PoetryInterface {
         
         // Available words for composition (Viking/Norse themed)
         this.wordList = [
-            { text: 'wind', syllables: ['–'] }, // trochaic: one stressed syllable
-            { text: 'waves', syllables: ['–'] },
-            { text: 'sailing', syllables: ['–', '◡'] }, // trochaic: stressed-unstressed
-            { text: 'ocean', syllables: ['–', '◡'] },
-            { text: 'thunder', syllables: ['–', '◡'] },
-            { text: 'mighty', syllables: ['–', '◡'] },
-            { text: 'northern', syllables: ['–', '◡'] },
-            { text: 'golden', syllables: ['–', '◡'] },
-            { text: 'Viking', syllables: ['–', '◡'] },
-            { text: 'dragon', syllables: ['–', '◡'] },
-            { text: 'glory', syllables: ['–', '◡'] },
-            { text: 'ravens', syllables: ['–', '◡'] }
+            { text: 'wind', syllables: ['wind'] }, 
+            { text: 'wave', syllables: ['wave'] },
+            { text: 'sailing', syllables: ['sail', 'ing'] }, 
+            { text: 'ocean', syllables: ['o', 'cean'] },
+            { text: 'thunder', syllables: ['thun', 'der'] },
+            { text: 'mighty', syllables: ['might', 'y'] },
+            { text: 'northern', syllables: ['north', 'ern'] },
+            { text: 'golden', syllables: ['gol', 'den'] },
+            { text: 'Viking', syllables: ['Vik', 'ing'] },
+            { text: 'dragon', syllables: ['drag', 'on'] },
+            { text: 'glory', syllables: ['glo', 'ry'] },
+            { text: 'raven', syllables: ['ra', 'ven'] }
         ];
         
         // Drag state
@@ -103,14 +103,14 @@ class PoetryInterface {
                 
                 // Slot background
                 const slotBg = new PIXI.Graphics();
-                slotBg.rect(0, 0, slotWidth, slotHeight);
+                slotBg.rect(0, 0, slotWidth, 0);
                 slotBg.stroke({ color: 0x8b7355, width: 2 });
-                slotBg.fill({ color: 0x2a2a3e, alpha: 0.5 });
                 slotContainer.addChild(slotBg);
                 
                 // Syllable markers below slot (trochaic pattern: – ◡)
+                const syllableMark = (slot % 2 == 0) ? '–' : '◡';
                 const syllableText = new PIXI.Text({
-                    text: '– ◡',
+                    text: syllableMark,
                     style: {
                         fontFamily: 'Arial',
                         fontSize: 20,
