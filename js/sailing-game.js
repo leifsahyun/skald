@@ -437,13 +437,14 @@ class SailingGame {
             this.enemyContainer.addChild(sprite);
             
             // Load aware_eye.svg
-            const eyeTexture = await PIXI.Assets.load('enemies/aware_eye.svg', {resolution: 8});
-            const eyeSprite = new PIXI.Sprite(eyeTexture);
-            eyeSprite.anchor.set(0.5, 1); // Anchor at bottom center
-            eyeSprite.width = enemy.eyeSize;
-            eyeSprite.height = enemy.eyeSize;
-            enemy.eyeSprite = eyeSprite;
-            this.enemyContainer.addChild(eyeSprite);
+            const eyeContext = await Assets.load('path/to.svg', {
+              parseAsGraphicsContext: true,
+            });
+            const eyeGraphics = new Graphics(eyeContext);
+            eyeGraphics.width = enemy.eyeSize;
+            eyeGraphics.height = enemy.eyeSize;
+            enemy.eyeSprite = eyeGraphics;
+            this.enemyContainer.addChild(eyeGraphics);
         } catch (error) {
             console.error('Failed to load enemy assets:', error);
         }
