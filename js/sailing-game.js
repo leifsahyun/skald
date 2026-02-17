@@ -416,7 +416,7 @@ class SailingGame {
                 speedDamping: 0.7 // Boat speed multiplier on collision (0.7 = 30% reduction)
             },
             eyeSize: 20,
-            eyeVerticalOffset: 10, // Pixels above enemy
+            eyeVerticalOffset: 20, // Pixels above enemy
             sprite: null,
             eyeSprite: null
         };
@@ -446,7 +446,8 @@ class SailingGame {
             });
             const eyeGraphics = new PIXI.Graphics(eyeContext);
             eyeGraphics.width = enemy.eyeSize;
-            eyeGraphics.height = enemy.eyeSize;
+            eyeGraphics.x = -enemy.eyeSize/2;
+            eyeGraphics.y = enemy.eyeVerticalOffset;
             enemy.eyeSprite = eyeGraphics;
             this.enemyContainer.addChild(eyeGraphics);
         } catch (error) {
@@ -544,8 +545,8 @@ class SailingGame {
             
             // Update eye sprite
             if (enemy.eyeSprite) {
-                enemy.eyeSprite.x = screenX;
-                enemy.eyeSprite.y = screenY - enemy.size / 2 - enemy.eyeVerticalOffset; // Above enemy
+                enemy.eyeSprite.x = screenX - enemy.eyeSize / 2;
+                enemy.eyeSprite.y = screenY - enemy.eyeVerticalOffset; // Above enemy
                 
                 // Change eye color based on awareness
                 if (enemy.awareness < enemy.awarenessThreshold) {
