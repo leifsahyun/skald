@@ -440,7 +440,9 @@ class SailingGame {
             const eyeContext = await PIXI.Assets.load({
               src: 'enemies/aware_eye.svg',
               parser: 'svg',
-              parseAsGraphicsContext: true,
+              data: {
+                parseAsGraphicsContext: true,
+              },
             });
             const eyeGraphics = new Graphics(eyeContext);
             eyeGraphics.width = enemy.eyeSize;
