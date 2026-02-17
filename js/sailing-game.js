@@ -550,16 +550,19 @@ class SailingGame {
                 
                 // Change eye color based on awareness
                 if (enemy.awareness < enemy.awarenessThreshold) {
-                    enemy.eyeSprite.setStrokeStyle({
-                        color: 0x000000
+                    enemy.eyeSprite.fill({
+                        color: 0x000000,
+                        fill: 0x000000
                     }); // Black
                 } else if (enemy.awareness < 0.5) {
-                    enemy.eyeSprite.setStrokeStyle({
-                        color: 0xFFFF00
+                    enemy.eyeSprite.fill({
+                        color: 0xFFFF00,
+                        fill: 0xFFFF00
                     }); // Yellow
                 } else {
-                    enemy.eyeSprite.setStrokeStyle({
-                        color: 0xFF0000
+                    enemy.eyeSprite.fill({
+                        color: 0xFF0000,
+                        fill: 0xFF0000
                     }); // Red
                 }
             }
