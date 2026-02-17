@@ -437,7 +437,7 @@ class SailingGame {
             this.enemyContainer.addChild(sprite);
             
             // Load aware_eye.svg
-            const eyeContext = await Assets.load('path/to.svg', {
+            const eyeContext = await PIXI.Assets.load('enemies/aware_eye.svg', {
               parseAsGraphicsContext: true,
             });
             const eyeGraphics = new Graphics(eyeContext);
