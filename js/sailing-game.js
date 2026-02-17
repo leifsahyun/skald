@@ -444,7 +444,7 @@ class SailingGame {
                 parseAsGraphicsContext: true,
               },
             });
-            const eyeGraphics = new Graphics(eyeContext);
+            const eyeGraphics = new PIXI.Graphics(eyeContext);
             eyeGraphics.width = enemy.eyeSize;
             eyeGraphics.height = enemy.eyeSize;
             enemy.eyeSprite = eyeGraphics;
