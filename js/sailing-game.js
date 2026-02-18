@@ -76,6 +76,9 @@ class SailingGame {
         // Enemies
         this.enemies = [];
         
+        // Enemy eye contexts (shared across all enemies)
+        this.eyeContexts = null;
+        
         // Initialize the game asynchronously
         this.init();
     }
@@ -425,8 +428,42 @@ class SailingGame {
         this.loadEnemyAssets(enemy);
     }
     
+    async loadEyeContexts() {
+        if (this.eyeContexts) {
+            return; // Already loaded
+        }
+        
+        // Load all three pre-colored eye SVGs in parallel
+        const [eyeContextBlack, eyeContextYellow, eyeContextRed] = await Promise.all([
+            PIXI.Assets.load({
+                src: 'enemies/aware_eye_black.svg',
+                parser: 'svg',
+                data: { parseAsGraphicsContext: true }
+            }),
+            PIXI.Assets.load({
+                src: 'enemies/aware_eye_yellow.svg',
+                parser: 'svg',
+                data: { parseAsGraphicsContext: true }
+            }),
+            PIXI.Assets.load({
+                src: 'enemies/aware_eye_red.svg',
+                parser: 'svg',
+                data: { parseAsGraphicsContext: true }
+            })
+        ]);
+        
+        this.eyeContexts = {
+            black: eyeContextBlack,
+            yellow: eyeContextYellow,
+            red: eyeContextRed
+        };
+    }
+    
     async loadEnemyAssets(enemy) {
         try {
+            // Ensure eye contexts are loaded (shared across all enemies)
+            await this.loadEyeContexts();
+            
             // Load nykur texture
             const texture = await PIXI.Assets.load('enemies/nykur/nykur.png');
             const sprite = new PIXI.Sprite(texture);
@@ -436,15 +473,8 @@ class SailingGame {
             enemy.sprite = sprite;
             this.enemyContainer.addChild(sprite);
             
-            // Load aware_eye.svg
-            const eyeContext = await PIXI.Assets.load({
-              src: 'enemies/aware_eye.svg',
-              parser: 'svg',
-              data: {
-                parseAsGraphicsContext: true,
-              },
-            });
-            const eyeGraphics = new PIXI.Graphics(eyeContext);
+            // Create initial eye graphics using shared contexts (start with black)
+            const eyeGraphics = new PIXI.Graphics(this.eyeContexts.black);
             eyeGraphics.scale = enemy.eyeSize / eyeGraphics.width;
             eyeGraphics.x = -enemy.eyeSize/2;
             eyeGraphics.y = enemy.eyeVerticalOffset;
@@ -544,26 +574,23 @@ class SailingGame {
             enemy.sprite.rotation = enemy.angle;
             
             // Update eye sprite
-            if (enemy.eyeSprite) {
+            if (enemy.eyeSprite && this.eyeContexts) {
                 enemy.eyeSprite.x = screenX - enemy.eyeSize / 2;
                 enemy.eyeSprite.y = screenY - enemy.eyeVerticalOffset; // Above enemy
                 
-                // Change eye color based on awareness
+                // Change eye color based on awareness using pre-colored SVGs
+                let newContext;
                 if (enemy.awareness < enemy.awarenessThreshold) {
-                    enemy.eyeSprite.fill({
-                        color: 0x000000,
-                        fill: 0x000000
-                    }); // Black
+                    newContext = this.eyeContexts.black;
                 } else if (enemy.awareness < 0.5) {
-                    enemy.eyeSprite.fill({
-                        color: 0xFFFF00,
-                        fill: 0xFFFF00
-                    }); // Yellow
+                    newContext = this.eyeContexts.yellow;
                 } else {
-                    enemy.eyeSprite.fill({
-                        color: 0xFF0000,
-                        fill: 0xFF0000
-                    }); // Red
+                    newContext = this.eyeContexts.red;
+                }
+                
+                // Only update context if it changed to avoid unnecessary operations
+                if (enemy.eyeSprite.context !== newContext) {
+                    enemy.eyeSprite.context = newContext;
                 }
             }
         }
