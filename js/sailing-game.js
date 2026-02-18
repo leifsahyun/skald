@@ -76,6 +76,9 @@ class SailingGame {
         // Enemies
         this.enemies = [];
         
+        // Enemy eye contexts (shared across all enemies)
+        this.eyeContexts = null;
+        
         // Initialize the game asynchronously
         this.init();
     }
@@ -425,8 +428,42 @@ class SailingGame {
         this.loadEnemyAssets(enemy);
     }
     
+    async loadEyeContexts() {
+        if (this.eyeContexts) {
+            return; // Already loaded
+        }
+        
+        // Load all three pre-colored eye SVGs in parallel
+        const [eyeContextBlack, eyeContextYellow, eyeContextRed] = await Promise.all([
+            PIXI.Assets.load({
+                src: 'enemies/aware_eye_black.svg',
+                parser: 'svg',
+                data: { parseAsGraphicsContext: true }
+            }),
+            PIXI.Assets.load({
+                src: 'enemies/aware_eye_yellow.svg',
+                parser: 'svg',
+                data: { parseAsGraphicsContext: true }
+            }),
+            PIXI.Assets.load({
+                src: 'enemies/aware_eye_red.svg',
+                parser: 'svg',
+                data: { parseAsGraphicsContext: true }
+            })
+        ]);
+        
+        this.eyeContexts = {
+            black: eyeContextBlack,
+            yellow: eyeContextYellow,
+            red: eyeContextRed
+        };
+    }
+    
     async loadEnemyAssets(enemy) {
         try {
+            // Ensure eye contexts are loaded (shared across all enemies)
+            await this.loadEyeContexts();
+            
             // Load nykur texture
             const texture = await PIXI.Assets.load('enemies/nykur/nykur.png');
             const sprite = new PIXI.Sprite(texture);
@@ -436,38 +473,8 @@ class SailingGame {
             enemy.sprite = sprite;
             this.enemyContainer.addChild(sprite);
             
-            // Load pre-colored eye SVGs
-            const eyeContextBlack = await PIXI.Assets.load({
-              src: 'enemies/aware_eye_black.svg',
-              parser: 'svg',
-              data: {
-                parseAsGraphicsContext: true,
-              },
-            });
-            const eyeContextYellow = await PIXI.Assets.load({
-              src: 'enemies/aware_eye_yellow.svg',
-              parser: 'svg',
-              data: {
-                parseAsGraphicsContext: true,
-              },
-            });
-            const eyeContextRed = await PIXI.Assets.load({
-              src: 'enemies/aware_eye_red.svg',
-              parser: 'svg',
-              data: {
-                parseAsGraphicsContext: true,
-              },
-            });
-            
-            // Store all three eye contexts on the enemy
-            enemy.eyeContexts = {
-                black: eyeContextBlack,
-                yellow: eyeContextYellow,
-                red: eyeContextRed
-            };
-            
-            // Create initial eye graphics (start with black)
-            const eyeGraphics = new PIXI.Graphics(eyeContextBlack);
+            // Create initial eye graphics using shared contexts (start with black)
+            const eyeGraphics = new PIXI.Graphics(this.eyeContexts.black);
             eyeGraphics.scale = enemy.eyeSize / eyeGraphics.width;
             eyeGraphics.x = -enemy.eyeSize/2;
             eyeGraphics.y = enemy.eyeVerticalOffset;
@@ -567,18 +574,18 @@ class SailingGame {
             enemy.sprite.rotation = enemy.angle;
             
             // Update eye sprite
-            if (enemy.eyeSprite && enemy.eyeContexts) {
+            if (enemy.eyeSprite && this.eyeContexts) {
                 enemy.eyeSprite.x = screenX - enemy.eyeSize / 2;
                 enemy.eyeSprite.y = screenY - enemy.eyeVerticalOffset; // Above enemy
                 
                 // Change eye color based on awareness using pre-colored SVGs
                 let newContext;
                 if (enemy.awareness < enemy.awarenessThreshold) {
-                    newContext = enemy.eyeContexts.black;
+                    newContext = this.eyeContexts.black;
                 } else if (enemy.awareness < 0.5) {
-                    newContext = enemy.eyeContexts.yellow;
+                    newContext = this.eyeContexts.yellow;
                 } else {
-                    newContext = enemy.eyeContexts.red;
+                    newContext = this.eyeContexts.red;
                 }
                 
                 // Only update context if it changed to avoid unnecessary operations
