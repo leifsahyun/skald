@@ -418,6 +418,10 @@ class SailingGame {
                 pushStrength: 2.0,
                 speedDamping: 0.7 // Boat speed multiplier on collision (0.7 = 30% reduction)
             },
+            terrainCollision: {
+                sampleRadius: 0.35, // Radius sample as a multiplier of enemy size
+                pushStrength: 1.0
+            },
             eyeSize: 20,
             eyeVerticalOffset: 40, // Pixels above enemy
             sprite: null,
@@ -532,12 +536,93 @@ class SailingGame {
             }
             
             // Move enemy in the direction it's facing
-            enemy.x += Math.cos(enemy.angle) * enemy.speed;
-            enemy.y += Math.sin(enemy.angle) * enemy.speed;
+            const moveX = Math.cos(enemy.angle) * enemy.speed;
+            const moveY = Math.sin(enemy.angle) * enemy.speed;
+            this.moveEnemyWithTerrainCollision(enemy, moveX, moveY);
             
             // Check collision with boat
             this.checkEnemyBoatCollision(enemy);
         }
+    }
+    
+    checkEnemyTerrainCollision(enemy, worldX, worldY) {
+        const sampleRadius = enemy.size * enemy.terrainCollision.sampleRadius;
+        const sampleAngles = [
+            0,
+            Math.PI / 2,
+            -Math.PI / 2,
+            Math.PI,
+            Math.PI / 4,
+            -Math.PI / 4
+        ];
+        
+        const samplePoints = [
+            { x: worldX, y: worldY },
+            ...sampleAngles.map(angleOffset => {
+                const angle = enemy.angle + angleOffset;
+                return {
+                    x: worldX + Math.cos(angle) * sampleRadius,
+                    y: worldY + Math.sin(angle) * sampleRadius
+                };
+            })
+        ];
+        
+        let collisionCount = 0;
+        let avgCollisionX = 0;
+        let avgCollisionY = 0;
+        
+        for (const point of samplePoints) {
+            const collision = this.checkCollision(point.x, point.y);
+            if (collision.colliding) {
+                collisionCount++;
+                avgCollisionX += collision.pixelX;
+                avgCollisionY += collision.pixelY;
+            }
+        }
+        
+        if (collisionCount === 0) {
+            return { colliding: false };
+        }
+        
+        return {
+            colliding: true,
+            avgCollisionX: avgCollisionX / collisionCount,
+            avgCollisionY: avgCollisionY / collisionCount
+        };
+    }
+    
+    moveEnemyWithTerrainCollision(enemy, moveX, moveY) {
+        if (moveX === 0 && moveY === 0) {
+            return;
+        }
+        
+        const currentX = enemy.x;
+        const currentY = enemy.y;
+        const targetX = currentX + moveX;
+        const targetY = currentY + moveY;
+        
+        const targetCollision = this.checkEnemyTerrainCollision(enemy, targetX, targetY);
+        
+        if (!targetCollision.colliding) {
+            enemy.x = targetX;
+            enemy.y = targetY;
+            return;
+        }
+
+        // Keep current position and turn away from terrain instead of pushing the enemy.
+        const awayDx = targetX - targetCollision.avgCollisionX;
+        const awayDy = targetY - targetCollision.avgCollisionY;
+        const awayDistance = Math.sqrt(awayDx * awayDx + awayDy * awayDy);
+
+        if (awayDistance > 0) {
+            enemy.angle = Math.atan2(awayDy, awayDx);
+        } else {
+            enemy.angle = (enemy.angle + Math.PI) % (Math.PI * 2);
+        }
+
+        // Slow down based on pushStrength so harder terrain impacts scrub more speed.
+        const pushStrength = Math.max(0, enemy.terrainCollision.pushStrength);
+        enemy.speed *= 1 / (1 + pushStrength);
     }
     
     checkEnemyBoatCollision(enemy) {
