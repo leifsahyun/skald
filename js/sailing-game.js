@@ -420,8 +420,7 @@ class SailingGame {
             },
             terrainCollision: {
                 sampleRadius: 0.35, // Radius sample as a multiplier of enemy size
-                pushStrength: 1.0,
-                speedDamping: 0.5
+                pushStrength: 1.0
             },
             eyeSize: 20,
             eyeVerticalOffset: 40, // Pixels above enemy
@@ -609,41 +608,21 @@ class SailingGame {
             enemy.y = targetY;
             return;
         }
-        
-        const canSlideX = !this.checkEnemyTerrainCollision(enemy, currentX + moveX, currentY).colliding;
-        const canSlideY = !this.checkEnemyTerrainCollision(enemy, currentX, currentY + moveY).colliding;
-        
-        if (canSlideX) {
-            enemy.x = currentX + moveX;
+
+        // Keep current position and turn away from terrain instead of pushing the enemy.
+        const awayDx = targetX - targetCollision.avgCollisionX;
+        const awayDy = targetY - targetCollision.avgCollisionY;
+        const awayDistance = Math.sqrt(awayDx * awayDx + awayDy * awayDy);
+
+        if (awayDistance > 0) {
+            enemy.angle = Math.atan2(awayDy, awayDx);
+        } else {
+            enemy.angle = (enemy.angle + Math.PI) % (Math.PI * 2);
         }
-        
-        if (canSlideY) {
-            enemy.y = currentY + moveY;
-        }
-        
-        if (!canSlideX && !canSlideY) {
-            // Push enemy away from the averaged terrain impact point.
-            const dx = currentX - targetCollision.avgCollisionX;
-            const dy = currentY - targetCollision.avgCollisionY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance > 0) {
-                enemy.x = currentX + (dx / distance) * enemy.terrainCollision.pushStrength;
-                enemy.y = currentY + (dy / distance) * enemy.terrainCollision.pushStrength;
-                enemy.angle = Math.atan2(dy, dx);
-            } else {
-                enemy.x = currentX;
-                enemy.y = currentY;
-            }
-            
-            enemy.speed *= enemy.terrainCollision.speedDamping;
-            
-            // Fallback to previous valid position if push still overlaps terrain.
-            if (this.checkEnemyTerrainCollision(enemy, enemy.x, enemy.y).colliding) {
-                enemy.x = currentX;
-                enemy.y = currentY;
-            }
-        }
+
+        // Slow down based on pushStrength so harder terrain impacts scrub more speed.
+        const pushStrength = Math.max(0, enemy.terrainCollision.pushStrength);
+        enemy.speed *= 1 / (1 + pushStrength);
     }
     
     checkEnemyBoatCollision(enemy) {
